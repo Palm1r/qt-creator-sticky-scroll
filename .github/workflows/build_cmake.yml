@@ -17,11 +17,12 @@ jobs:
     outputs:
         tag: ${{ steps.git.outputs.tag }}
     strategy:
+      fail-fast: false
       matrix:
         config:
         - {
             name: "Windows Latest MSVC", artifact: "Windows-x64",
-            os: windows-latest,
+            os: windows-2022,
             platform: windows_x64,
             cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
@@ -53,7 +54,7 @@ jobs:
           }
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
     - name: Checkout submodules
       id: git
       shell: cmake -P {0}
@@ -65,7 +66,7 @@ jobs:
         endif()
 
     - name: Download Ninja and CMake
-      uses: lukka/get-cmake@latest
+      uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
       with:
         cmakeVersion: ${{ env.CMAKE_VERSION }}
         ninjaVersion: ${{ env.NINJA_VERSION }}
@@ -94,9 +95,15 @@ jobs:
 
         function(download_qt platform export_qt_dir)
           string(REPLACE "." "" qt_version_dotless "${qt_version}")
+          # Inner repository folder. Same as the outer one on Linux/macOS, but the
+          # Windows x64 repo is split per compiler (qt6_<ver>_msvc2022_64) since Qt 6.11.
+          set(qt_repo_dir "qt6_${qt_version_dotless}")
           if (platform STREQUAL "windows_x64")
             set(url_os "windows_x86")
             set(compiler_id "win64_msvc2022_64")
+            if (qt_version VERSION_GREATER_EQUAL "6.11.0")
+              set(qt_repo_dir "qt6_${qt_version_dotless}_msvc2022_64")
+            endif()
           elseif (platform STREQUAL "windows_arm64")
             set(url_os "windows_arm64")
             set(compiler_id "win64_msvc2022_arm64")
@@ -111,10 +118,15 @@ jobs:
             set(compiler_id "clang_64")
           endif()
 
-          set(qt_base_url "https://download.qt.io/online/qtsdkrepository/${url_os}/desktop/qt6_${qt_version_dotless}/qt6_${qt_version_dotless}")
+          set(qt_base_url "https://download.qt.io/online/qtsdkrepository/${url_os}/desktop/qt6_${qt_version_dotless}/${qt_repo_dir}")
           file(DOWNLOAD "${qt_base_url}/Updates.xml" ./Updates.xml SHOW_PROGRESS)
 
           file(READ ./Updates.xml updates_xml)
+          # The XML is turned into a CMake list (";"-separated) below. Qt's Updates.xml
+          # contains literal ";" characters (from "&lt;br>" HTML entities in package
+          # <Description>s), which would fragment the <PackageUpdate> sections and make
+          # some modules (e.g. qtbase, qtdeclarative) impossible to find. Neutralize them.
+          string(REPLACE ";" " " updates_xml "${updates_xml}")
           # get the package sections, only for given compiler, without the "debug info" ones
           string(REGEX REPLACE "<PackageUpdate>" ";<PackageUpdate>" sections "${updates_xml}")
           list(FILTER sections EXCLUDE REGEX "<Name>.*debug.*</Name>")
@@ -156,7 +168,13 @@ jobs:
             execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "$ENV{GITHUB_WORKSPACE}/${archive}" WORKING_DIRECTORY "${qt_dir}/${subdir}")
           endfunction()
 
-          foreach(package qtbase qtdeclarative qtshadertools)
+          # qttools provides LinguistTools (lupdate/lrelease), required by this plugin.
+          set(packages qtbase qtdeclarative qttools qtsvg qt5compat qtshadertools)
+          # TaskTree became a standalone module in Qt 6.11; Qt Creator links against it.
+          if (qt_version VERSION_GREATER_EQUAL "6.11.0")
+            list(APPEND packages qttasktree)
+          endif()
+          foreach(package ${packages})
             downloadAndExtract(${package} "")
           endforeach()
 
@@ -182,7 +200,7 @@ jobs:
 
     - name: Download Qt Creator
       id: qt_creator
-      uses: qt-creator/install-dev-package@v2.1
+      uses: qt-creator/install-dev-package@ca70993b6cc9cdcaa77689d527f54e35daa4ae7a # v2.3
       with:
         version: ${{ env.QT_CREATOR_VERSION }}
         unzip-to: 'qtcreator'
@@ -213,19 +231,33 @@ jobs:
             set(ENV{CMAKE_OSX_ARCHITECTURES} "x86_64;arm64")
         endif()
 
-        set(build_plugin_py "scripts/build_plugin.py")
-        foreach(dir "share/qtcreator/scripts" "Qt Creator.app/Contents/Resources/scripts" "Contents/Resources/scripts")
-          if(EXISTS "${{ steps.qt_creator.outputs.path }}/${dir}/build_plugin.py")
-            set(build_plugin_py "${dir}/build_plugin.py")
+        # Locate build_plugin.py. Its location depends on the dev-package layout:
+        # "share/qtcreator/scripts" on Linux/Windows, but nested under a
+        # "Qt Creator.sdk/" subfolder on macOS. Search recursively so any layout works.
+        file(GLOB_RECURSE build_plugin_py_candidates
+             "${{ steps.qt_creator.outputs.path }}/build_plugin.py")
+        # Prefer the copy in the dev package's scripts dir (common.py sits next to it);
+        # a copy inside the .app bundle may lack the helper modules it imports.
+        set(build_plugin_py "")
+        foreach(candidate ${build_plugin_py_candidates})
+          if (candidate MATCHES "share/qtcreator/scripts/build_plugin.py")
+            set(build_plugin_py "${candidate}")
             break()
           endif()
         endforeach()
+        if (NOT build_plugin_py AND build_plugin_py_candidates)
+          list(GET build_plugin_py_candidates 0 build_plugin_py)
+        endif()
+        if (NOT build_plugin_py)
+          message(FATAL_ERROR "Could not find build_plugin.py under '${{ steps.qt_creator.outputs.path }}'")
+        endif()
+        message(STATUS "Using build script: ${build_plugin_py}")
 
         execute_process(
           COMMAND python
             -u
-            "${{ steps.qt_creator.outputs.path }}/${build_plugin_py}"
-            --name "$ENV{PLUGIN_NAME}-$ENV{QT_CREATOR_VERSION}-${{ matrix.config.artifact }}"
+            "${build_plugin_py}"
+            --name "$ENV{PLUGIN_NAME}-${{ steps.git.outputs.tag }}-QtC$ENV{QT_CREATOR_VERSION}-${{ matrix.config.artifact }}"
             --src .
             --build build
             --qt-path "${{ steps.qt.outputs.qt_dir }}"
@@ -242,15 +274,15 @@ jobs:
         endif()
 
     - name: Upload
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        path: ./${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
-        name: ${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
+        path: ./${{ env.PLUGIN_NAME }}-${{ steps.git.outputs.tag }}-QtC${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
+        name: ${{ env.PLUGIN_NAME}}-${{ steps.git.outputs.tag }}-QtC${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
 
     # The json is the same for all platforms, but we need to save one
     - name: Upload plugin json
       if: matrix.config.platform == 'linux_x64'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: ${{ env.PLUGIN_NAME }}.json
         path: ./build/build/${{ env.PLUGIN_NAME }}.json
@@ -260,10 +292,12 @@ jobs:
     if: contains(github.ref, 'tags/v')
     runs-on: ubuntu-latest
     needs: [build]
+    permissions:
+      contents: write
 
     steps:
     - name: Download artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         path: release-with-dirs
 
@@ -274,16 +308,16 @@ jobs:
 
     - name: Create Release
       id: create_release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ needs.build.outputs.tag }}
         files: |
-          release/${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-Linux-arm64.7z
-          release/${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-Linux-x64.7z
-          release/${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-macOS-universal.7z
-          release/${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-Windows-arm64.7z
-          release/${{ env.PLUGIN_NAME}}-${{ env.QT_CREATOR_VERSION }}-Windows-x64.7z
+          release/${{ env.PLUGIN_NAME}}-${{ needs.build.outputs.tag }}-QtC${{ env.QT_CREATOR_VERSION }}-Linux-arm64.7z
+          release/${{ env.PLUGIN_NAME}}-${{ needs.build.outputs.tag }}-QtC${{ env.QT_CREATOR_VERSION }}-Linux-x64.7z
+          release/${{ env.PLUGIN_NAME}}-${{ needs.build.outputs.tag }}-QtC${{ env.QT_CREATOR_VERSION }}-macOS-universal.7z
+          release/${{ env.PLUGIN_NAME}}-${{ needs.build.outputs.tag }}-QtC${{ env.QT_CREATOR_VERSION }}-Windows-arm64.7z
+          release/${{ env.PLUGIN_NAME}}-${{ needs.build.outputs.tag }}-QtC${{ env.QT_CREATOR_VERSION }}-Windows-x64.7z
         draft: false
         prerelease: false

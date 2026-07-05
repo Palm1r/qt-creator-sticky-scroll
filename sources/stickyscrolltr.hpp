@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Petr Mironychev
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #include <QCoreApplication>
@@ -9,4 +12,4 @@ struct Tr
     Q_DECLARE_TR_FUNCTIONS(QtC::StickyScroll)
 };
 
-} // namespace StickyScroll
+}

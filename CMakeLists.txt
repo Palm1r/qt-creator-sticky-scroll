@@ -5,36 +5,32 @@ list(APPEND CMAKE_PREFIX_PATH "/Users/palm1r/Qt/Qt Creator.sdk")
 
 project(StickyScroll)
 
-set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(QtCreator REQUIRED COMPONENTS Core)
-find_package(Qt6 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 6.9 REQUIRED COMPONENTS Widgets LinguistTools)
 
-# Add a CMake option that enables building your plugin with tests.
-# You don't want your released plugin binaries to contain tests,
-# so make that default to 'NO'.
-# Enable tests by passing -DWITH_TESTS=ON to CMake.
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES
+  en cs zh_CN zh_TW da de fr hr ja pl ru sl sv uk
+)
+
 option(WITH_TESTS "Builds with tests" NO)
 
 if(WITH_TESTS)
-  # Look for QtTest
   find_package(Qt6 REQUIRED COMPONENTS Test)
 
-  # Tell CMake functions like add_qtc_plugin about the QtTest component.
   set(IMPLICIT_DEPENDS Qt::Test)
 
-  # Enable ctest for auto tests.
   enable_testing()
 endif()
 
 add_qtc_plugin(StickyScroll
   PLUGIN_DEPENDS
     QtCreator::Core
+    QtCreator::TextEditor
   DEPENDS
     Qt::Widgets
     QtCreator::ExtensionSystem
@@ -43,12 +39,33 @@ add_qtc_plugin(StickyScroll
     .github/workflows/build_cmake.yml
     .github/workflows/README.md
     README.md
-    stickyscroll.cpp
-    stickyscrollconstants.h
-    stickyscrolltr.h
+    sources/foldingscanner.cpp
+    sources/foldingscanner.hpp
+    sources/panelstateengine.hpp
+    sources/scopemodels.hpp
+    sources/stickyscroll.cpp
+    sources/stickyscrolltypes.hpp
+    sources/stickyscrollsettings.cpp
+    sources/stickyscrollsettings.hpp
+    sources/stickyscrolltr.hpp
+    sources/stickyscrollwidget.cpp
+    sources/stickyscrollwidget.hpp
 )
 
-# Enable the Run button in Qt Creator
+target_include_directories(StickyScroll PRIVATE sources)
+
+extend_qtc_plugin(StickyScroll
+  CONDITION WITH_TESTS
+  DEPENDS Qt::Test
+  SOURCES
+    tests/stickyscrolltest.cpp
+    tests/stickyscrolltest.hpp
+)
+
+if(WITH_TESTS)
+  target_include_directories(StickyScroll PRIVATE tests)
+endif()
+
 get_target_property(QtCreatorCorePath QtCreator::Core LOCATION)
 find_program(QtCreatorExecutable
   NAMES
@@ -65,3 +82,9 @@ if (QtCreatorExecutable)
   )
   set_target_properties(RunQtCreator PROPERTIES FOLDER "qtc_runnable")
 endif()
+
+qt_add_translations(TARGETS StickyScroll
+          TS_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/resources/translations
+          RESOURCE_PREFIX "/translations"
+          LUPDATE_OPTIONS -no-obsolete -locations none
+)
