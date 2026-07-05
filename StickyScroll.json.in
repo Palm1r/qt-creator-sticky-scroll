@@ -1,0 +1,14 @@
+{
+    "Id" : "stickyscroll",
+    "Name" : "StickyScroll",
+    "Version" : "0.0.1",
+    "CompatVersion" : "0.0.1",
+    "Vendor" : "Petr Mironychev",
+    "VendorId" : "petrmironychev",
+    "Copyright" : "(C) Petr Mironychev",
+    "License" : "MIT",
+    "Description" : "Sticky Scroll",
+    "Url" : "https://github.com/Palm1r",
+    "DocumentationUrl" : "",
+    ${IDE_PLUGIN_DEPENDENCIES}
+}
