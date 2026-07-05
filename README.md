@@ -1,4 +1,4 @@
-# Sticky Scroll
+# Qt Creator Sticky Scroll
 
 [![Build plugin](https://github.com/Palm1r/qt-creator-sticky-scroll/actions/workflows/build_cmake.yml/badge.svg)](https://github.com/Palm1r/qt-creator-sticky-scroll/actions/workflows/build_cmake.yml)
 
