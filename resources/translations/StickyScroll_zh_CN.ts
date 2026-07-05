@@ -5,15 +5,15 @@
     <name>QtC::StickyScroll</name>
     <message>
         <source>Enable sticky scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>启用粘性滚动</translation>
     </message>
     <message>
         <source>Maximum number of pinned lines:</source>
-        <translation type="unfinished"></translation>
+        <translation>固定行的最大数量：</translation>
     </message>
     <message>
         <source>Sticky Scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>粘性滚动</translation>
     </message>
 </context>
 </TS>

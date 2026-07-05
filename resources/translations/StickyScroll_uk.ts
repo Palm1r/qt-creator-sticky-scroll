@@ -5,15 +5,15 @@
     <name>QtC::StickyScroll</name>
     <message>
         <source>Enable sticky scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>Увімкнути липке прокручування</translation>
     </message>
     <message>
         <source>Maximum number of pinned lines:</source>
-        <translation type="unfinished"></translation>
+        <translation>Максимальна кількість закріплених рядків:</translation>
     </message>
     <message>
         <source>Sticky Scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>Липке прокручування</translation>
     </message>
 </context>
 </TS>

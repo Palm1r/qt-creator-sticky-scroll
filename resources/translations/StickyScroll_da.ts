@@ -5,15 +5,15 @@
     <name>QtC::StickyScroll</name>
     <message>
         <source>Enable sticky scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>Aktivér klæbrig rulning</translation>
     </message>
     <message>
         <source>Maximum number of pinned lines:</source>
-        <translation type="unfinished"></translation>
+        <translation>Maksimalt antal fastgjorte linjer:</translation>
     </message>
     <message>
         <source>Sticky Scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>Klæbrig rulning</translation>
     </message>
 </context>
 </TS>

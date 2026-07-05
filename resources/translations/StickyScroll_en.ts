@@ -5,15 +5,15 @@
     <name>QtC::StickyScroll</name>
     <message>
         <source>Enable sticky scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable sticky scroll</translation>
     </message>
     <message>
         <source>Maximum number of pinned lines:</source>
-        <translation type="unfinished"></translation>
+        <translation>Maximum number of pinned lines:</translation>
     </message>
     <message>
         <source>Sticky Scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>Sticky Scroll</translation>
     </message>
 </context>
 </TS>

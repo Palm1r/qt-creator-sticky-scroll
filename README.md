@@ -26,6 +26,15 @@ chosen automatically per file type:
   highlighter provides no folding, e.g. `# Title → ## Usage → ### Configuration`.
   `#` inside fenced code blocks is ignored.
 
+## Settings
+
+Configure the plugin under **Settings → Text Editor → Sticky Scroll**:
+
+- **Enable sticky scroll** — turn the pinned headers on or off (enabled by
+  default).
+- **Maximum number of pinned lines** — how many scope headers may stay pinned at
+  once (1–10, default 5).
+
 ## Installation
 
 Prebuilt plugins are attached to every
@@ -96,11 +105,11 @@ If you find this project helpful, there are several ways you can support it:
 
 - **Report issues** — if you encounter any bugs or have suggestions for
   improvements, please
-  [open an issue](https://github.com/Palm1r/qt-creator-changes-panel/issues).
+  [open an issue](https://github.com/Palm1r/qt-creator-sticky-scroll/issues).
 - **Contribute** — feel free to submit pull requests with bug fixes or new
   features.
 - **Spread the word** — star the
-  [GitHub repository](https://github.com/Palm1r/qt-creator-changes-panel) and
+  [GitHub repository](https://github.com/Palm1r/qt-creator-sticky-scroll) and
   share the plugin with your fellow developers.
 - **Financial support** — if you'd like to support the development financially,
   you can make a donation using one of the following:
@@ -116,7 +125,7 @@ If you find this project helpful, there are several ways you can support it:
 
 ## Qt Creator components and attributions
 
-Qt Creator Changes Panel is a plugin for Qt Creator and incorporates certain
+Sticky Scroll is a plugin for Qt Creator and incorporates certain
 components (plugin templates, API headers, and related boilerplate) originating
 from Qt Creator, which are copyright (C) The Qt Company Ltd.
 
@@ -124,7 +133,7 @@ These components are provided by The Qt Company under the GNU General Public
 License version 3, annotated with The Qt Company GPL Exception 1.0. This
 exception permits the development and distribution of Qt Creator plugins under
 licenses of the plugin author's own choosing, notwithstanding the GPL's general
-linking requirements. It is this exception that allows Qt Creator Changes Panel
+linking requirements. It is this exception that allows Sticky Scroll
 to be distributed under the MIT license.
 
 The original copyright and license notices of The Qt Company are preserved in
