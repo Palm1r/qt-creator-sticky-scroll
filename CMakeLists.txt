@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Remove when sharing with others.
-list(APPEND CMAKE_PREFIX_PATH "/Users/palm1r/Qt/Qt Creator.sdk")
-
 project(StickyScroll)
 
 set(CMAKE_AUTORCC ON)
@@ -31,10 +28,12 @@ add_qtc_plugin(StickyScroll
   PLUGIN_DEPENDS
     QtCreator::Core
     QtCreator::TextEditor
+    QtCreator::LanguageClient
   DEPENDS
     Qt::Widgets
     QtCreator::ExtensionSystem
     QtCreator::Utils
+    QtCreator::LanguageServerProtocol
   SOURCES
     .github/workflows/build_cmake.yml
     .github/workflows/README.md
@@ -50,6 +49,8 @@ add_qtc_plugin(StickyScroll
     sources/stickyscrolltr.hpp
     sources/stickyscrollwidget.cpp
     sources/stickyscrollwidget.hpp
+    sources/symbolindex.cpp
+    sources/symbolindex.hpp
 )
 
 target_include_directories(StickyScroll PRIVATE sources)

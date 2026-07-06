@@ -12,6 +12,7 @@ Q_DECLARE_LOGGING_CATEGORY(stickyLog)
 
 inline constexpr int kMaxHeaderRows = 4;
 inline constexpr int kHeaderBlankLookback = 3;
+inline constexpr int kInitializerLookback = 16;
 inline constexpr qreal kPanelBorderPx = 1;
 
 struct ScopeChain

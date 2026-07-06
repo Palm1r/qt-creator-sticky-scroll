@@ -4,6 +4,7 @@
 #pragma once
 
 #include "stickyscrolltypes.hpp"
+#include "symbolindex.hpp"
 
 #include <QHash>
 #include <QList>
@@ -32,6 +33,7 @@ public:
 
     void setStickyEnabled(bool enabled);
     void refresh();
+    void setSymbolSpans(const QList<SymbolSpan> &spans, int docRevision);
 
 signals:
     void navigateToLine(int line);
@@ -57,6 +59,8 @@ private:
     QTimer m_updateTimer;
     bool m_enabled = true;
     int m_paintedRevision = -1;
+    SymbolIndex m_symbols;
+    int m_symbolsRevision = -1;
     QHash<int, std::shared_ptr<QTextLayout>> m_layoutCache;
 };
 

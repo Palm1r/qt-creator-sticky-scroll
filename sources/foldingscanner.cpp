@@ -45,11 +45,45 @@ QTextBlock FoldingScanner::declarationAbove(const QTextBlock &brace)
     return line.isValid() && !isBlank(line) ? line : brace;
 }
 
+bool FoldingScanner::startsInitializerToken(const QString &trimmed)
+{
+    if (trimmed.startsWith(QLatin1Char(',')))
+        return true;
+    return trimmed.startsWith(QLatin1Char(':')) && !trimmed.startsWith(QLatin1String("::"));
+}
+
+QTextBlock FoldingScanner::skipInitializerClause(const QTextBlock &headerBottom,
+                                                 bool allowTrailingStyle)
+{
+    QTextBlock line = headerBottom;
+    for (int steps = 0; steps < kInitializerLookback; ++steps) {
+        const QTextBlock above = line.previous();
+        if (!above.isValid())
+            break;
+        const QString aboveText = above.text().trimmed();
+        if (aboveText.isEmpty())
+            break;
+        const QString text = line.text().trimmed();
+        bool continuation = startsInitializerToken(text) || startsInitializerToken(aboveText);
+        if (!continuation && allowTrailingStyle && !text.endsWith(QLatin1Char(':'))) {
+            continuation = aboveText.endsWith(QLatin1String("),"))
+                           || aboveText.endsWith(QLatin1String("},"))
+                           || (aboveText.endsWith(QLatin1Char(':'))
+                               && !aboveText.endsWith(QLatin1String("::"))
+                               && aboveText.contains(QLatin1Char(')')));
+        }
+        if (!continuation)
+            break;
+        line = above;
+    }
+    return line;
+}
+
 QList<int> FoldingScanner::headerRows(const QTextBlock &foldStart)
 {
-    const QTextBlock headerBottom = foldStart.text().trimmed() == QLatin1String("{")
-                                        ? declarationAbove(foldStart)
-                                        : foldStart;
+    const bool braceOnOwnLine = foldStart.text().trimmed() == QLatin1String("{");
+    const QTextBlock candidate = braceOnOwnLine ? declarationAbove(foldStart) : foldStart;
+    const QTextBlock headerBottom = skipInitializerClause(candidate, braceOnOwnLine);
 
     QList<int> rows{headerBottom.blockNumber()};
     int unmatchedCloseParens = -parenBalance(headerBottom);
@@ -64,7 +98,8 @@ QList<int> FoldingScanner::headerRows(const QTextBlock &foldStart)
     return rows;
 }
 
-ScopeChain FoldingScanner::enclosingHeaders(const QTextDocument *doc, int blockNumber, int maxLines)
+ScopeChain FoldingScanner::enclosingHeaders(const QTextDocument *doc, int blockNumber, int maxLines,
+                                            const HeaderResolver &resolver)
 {
     const QTextBlock block = doc->findBlockByNumber(blockNumber);
     if (!block.isValid())
@@ -82,7 +117,12 @@ ScopeChain FoldingScanner::enclosingHeaders(const QTextDocument *doc, int blockN
             continue;
         if (headersInnermostFirst.isEmpty())
             chain.innermostFoldStart = line.blockNumber();
-        headersInnermostFirst.append(headerRows(line));
+        QList<int> rows;
+        if (resolver)
+            rows = resolver(line);
+        if (rows.isEmpty())
+            rows = headerRows(line);
+        headersInnermostFirst.append(rows);
         enclosingIndent = lineIndent;
     }
     if (headersInnermostFirst.isEmpty())
@@ -97,6 +137,29 @@ ScopeChain FoldingScanner::enclosingHeaders(const QTextDocument *doc, int blockN
         chain.rows = header + chain.rows;
     }
     return chain;
+}
+
+int FoldingScanner::braceScopeAnchor(const QTextDocument *doc, int foldStartBlockNumber,
+                                     int lastVisibleBlockNumber)
+{
+    const QTextBlock start = doc->findBlockByNumber(foldStartBlockNumber);
+    if (!start.isValid())
+        return -1;
+
+    const int startIndent = TextBlockUserData::foldingIndent(start);
+    QTextBlock it = start.next();
+    for (; it.isValid(); it = it.next()) {
+        if (TextBlockUserData::foldingIndent(it) <= startIndent)
+            break;
+        if (it.blockNumber() > lastVisibleBlockNumber)
+            return -1;
+    }
+    if (!it.isValid())
+        return -1;
+
+    const QTextBlock anchor = it.text().trimmed().startsWith(QLatin1Char('}')) ? it
+                                                                               : it.previous();
+    return anchor.isValid() ? anchor.blockNumber() : -1;
 }
 
 int FoldingScanner::leadingIndentColumns(const QTextBlock &block)

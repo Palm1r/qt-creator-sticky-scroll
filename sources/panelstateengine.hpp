@@ -129,7 +129,7 @@ private:
             QTextBlock it = below;
             for (int i = 0; i < kMaxHeaderRows && it.isValid(); ++i, it = it.next()) {
                 if (TextEditor::TextBlockUserData::canFold(it)) {
-                    group = FoldingScanner::headerRows(it);
+                    group = m_model.headerRows(it);
                     if (!group.isEmpty() && group.first() <= belowNumber)
                         foldStartNumber = it.blockNumber();
                     break;
@@ -169,28 +169,11 @@ private:
         if (chain.innermostFoldStart < 0 || chain.innermostRowCount <= 0)
             return 0;
 
-        const QTextBlock start = m_doc->findBlockByNumber(chain.innermostFoldStart);
-        if (!start.isValid())
+        const int anchorNumber = m_model.pushAnchorBlock(m_doc, chain.innermostFoldStart,
+                                                         m_geometry.lastVisibleBlock());
+        if (anchorNumber <= chain.innermostFoldStart)
             return 0;
-
-        const int startIndent = TextEditor::TextBlockUserData::foldingIndent(start);
-        const int lastVisible = m_geometry.lastVisibleBlock();
-        QTextBlock it = start.next();
-        for (; it.isValid(); it = it.next()) {
-            if (TextEditor::TextBlockUserData::foldingIndent(it) <= startIndent)
-                break;
-            if (it.blockNumber() > lastVisible)
-                return 0;
-        }
-        if (!it.isValid())
-            return 0;
-
-        const QTextBlock anchorBlock = it.text().trimmed().startsWith(QLatin1Char('}'))
-                                           ? it
-                                           : it.previous();
-        if (!anchorBlock.isValid() || anchorBlock.blockNumber() <= chain.innermostFoldStart)
-            return 0;
-        const std::optional<qreal> anchorTop = m_geometry.blockTop(anchorBlock.blockNumber());
+        const std::optional<qreal> anchorTop = m_geometry.blockTop(anchorNumber);
         if (!anchorTop)
             return 0;
         const qreal intrusion = fullHeight - kPanelBorderPx - *anchorTop;
@@ -198,9 +181,9 @@ private:
         if (intrusion > 0) {
             qCDebug(stickyLog).noquote()
                 << "push: scope start line" << chain.innermostFoldStart + 1
-                << "indent" << startIndent
-                << "| anchor line" << anchorBlock.blockNumber() + 1
-                << "text" << anchorBlock.text().trimmed().left(30)
+                << "| anchor line" << anchorNumber + 1
+                << "text"
+                << m_doc->findBlockByNumber(anchorNumber).text().trimmed().left(30)
                 << "| anchorTop" << *anchorTop
                 << "fullHeight" << fullHeight
                 << "intrusion" << intrusion;

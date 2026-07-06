@@ -4,6 +4,7 @@
 #include "stickyscrolltest.hpp"
 
 #include "panelstateengine.hpp"
+#include "symbolindex.hpp"
 
 #include <texteditor/textdocumentlayout.h>
 
@@ -125,6 +126,184 @@ void StickyScrollTest::testMultilineSignature()
     QCOMPARE(chain.rows, (QList<int>{0, 1}));
     QCOMPARE(chain.innermostRowCount, 2);
     QCOMPARE(chain.innermostFoldStart, 2);
+}
+
+void StickyScrollTest::testConstructorInitializerShowsSignature()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"TestConstructor()", 0},
+                  {"    : member()", 0},
+                  {"{", 0},
+                  {"    body;", 1},
+                  {"}", 0}});
+
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5);
+    QCOMPARE(chain.rows, (QList<int>{0}));
+    QCOMPARE(chain.innermostFoldStart, 2);
+    QCOMPARE(chain.innermostRowCount, 1);
+}
+
+void StickyScrollTest::testConstructorCommaInitializersShowSignature()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"Foo::Foo()", 0},
+                  {"    : a(1)", 0},
+                  {"    , b(2)", 0},
+                  {"{", 0},
+                  {"    body;", 1},
+                  {"}", 0}});
+
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5);
+    QCOMPARE(chain.rows, (QList<int>{0}));
+}
+
+void StickyScrollTest::testClassBaseClauseOnOwnLine()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"class Foo", 0},
+                  {"    : public Bar", 0},
+                  {"{", 0},
+                  {"    int m;", 1},
+                  {"};", 0}});
+
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5);
+    QCOMPARE(chain.rows, (QList<int>{0}));
+}
+
+void StickyScrollTest::testTrailingStyleInitializerList()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"Foo::Foo() :", 0},
+                  {"    a(1),", 0},
+                  {"    b(2)", 0},
+                  {"{", 0},
+                  {"    body;", 1},
+                  {"}", 0}});
+
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5);
+    QCOMPARE(chain.rows, (QList<int>{0}));
+}
+
+void StickyScrollTest::testWrappedInitializerArguments()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"Foo::Foo()", 0},
+                  {"    : base(a,", 0},
+                  {"           b)", 0},
+                  {"{", 0},
+                  {"    body;", 1},
+                  {"}", 0}});
+
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5);
+    QCOMPARE(chain.rows, (QList<int>{0}));
+}
+
+void StickyScrollTest::testMultilineSignatureWithInitializer()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"Foo::Foo(int x,", 0},
+                  {"         int y)", 0},
+                  {"    : a(x)", 0},
+                  {"{", 0},
+                  {"    body;", 1},
+                  {"}", 0}});
+
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5);
+    QCOMPARE(chain.rows, (QList<int>{0, 1}));
+    QCOMPARE(chain.innermostRowCount, 2);
+}
+
+static FoldingScanner::HeaderResolver resolverFor(const SymbolIndex &index)
+{
+    return [index](const QTextBlock &foldStart) { return index.headerRowsFor(foldStart); };
+}
+
+void StickyScrollTest::testSymbolResolverRefinesHeader()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"void test()", 0},
+                  {"FANCY_MACRO", 0},
+                  {"{", 0},
+                  {"    body;", 1},
+                  {"}", 0}});
+
+    QCOMPARE(FoldingScanner::enclosingHeaders(&doc, 3, 5).rows, (QList<int>{1}));
+
+    const SymbolIndex index{{{0, 0, 4}}};
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
+    QCOMPARE(chain.rows, (QList<int>{0}));
+}
+
+void StickyScrollTest::testSymbolResolverSkipsControlFlow()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"void test()", 0},
+                  {"{", 0},
+                  {"    if (x) {", 1},
+                  {"        body;", 2},
+                  {"    }", 1},
+                  {"}", 0}});
+
+    const SymbolIndex index{{{0, 0, 5}}};
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
+    QCOMPARE(chain.rows, (QList<int>{0, 2}));
+    QCOMPARE(chain.innermostFoldStart, 2);
+}
+
+void StickyScrollTest::testSymbolResolverPicksNearestSymbol()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"class Foo", 0},
+                  {"{", 0},
+                  {"    void method() {", 1},
+                  {"        body;", 2},
+                  {"    }", 1},
+                  {"};", 0}});
+
+    const SymbolIndex index{{{0, 0, 5}, {2, 2, 4}}};
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
+    QCOMPARE(chain.rows, (QList<int>{0, 2}));
+}
+
+void StickyScrollTest::testSymbolResolverExtendsWrappedSignature()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"Foo::Foo(int x,", 0},
+                  {"         int y)", 0},
+                  {"    : member()", 0},
+                  {"{", 0},
+                  {"    body;", 1},
+                  {"}", 0}});
+
+    const SymbolIndex index{{{0, 0, 5}}};
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5, resolverFor(index));
+    QCOMPARE(chain.rows, (QList<int>{0, 1}));
+    QCOMPARE(chain.innermostRowCount, 2);
+}
+
+void StickyScrollTest::testSymbolResolverFallsBackOutsideSpans()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"void test()", 0},
+                  {"FANCY_MACRO", 0},
+                  {"{", 0},
+                  {"    body;", 1},
+                  {"}", 0}});
+
+    const SymbolIndex index{{{10, 10, 20}}};
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
+    QCOMPARE(chain.rows, (QList<int>{1}));
 }
 
 void StickyScrollTest::testBudgetDropsWholeScopes()
@@ -349,6 +528,73 @@ void StickyScrollTest::testChainProviderDecorator()
     const PanelState state = computePanelState(&doc, geometry, 5,
                                                ProviderScopeModel{onlyOutermost});
     QCOMPARE(state.chain.rows, (QList<int>{0}));
+}
+
+void StickyScrollTest::testRefinedModelPanelState()
+{
+    QTextDocument doc;
+    const QList<Line> lines = {{"void test()", 0},
+                               {"FANCY_MACRO", 0},
+                               {"{", 0},
+                               {"    body1;", 1},
+                               {"    body2;", 1},
+                               {"    body3;", 1},
+                               {"    body4;", 1},
+                               {"}", 0}};
+    fillDocument(doc, lines);
+    FakeGeometry geometry(lines.size(), 10, 40);
+    geometry.top = 30;
+
+    const SymbolIndex index{{{0, 0, 7}}};
+    const PanelState state
+        = computePanelState(&doc, geometry, 5, RefinedBraceScopeModel{index});
+    QCOMPARE(state.chain.rows, (QList<int>{0}));
+}
+
+void StickyScrollTest::testSymbolScopePinsThroughInitializerList()
+{
+    QTextDocument doc;
+    const QList<Line> lines = {{"LLMClientInterface::LLMClientInterface(", 0},
+                               {"    const A &a,", 1},
+                               {"    const B &b,", 1},
+                               {"    C &c,", 1},
+                               {"    D &d,", 1},
+                               {"    E &e,", 1},
+                               {"    F &f)", 1},
+                               {"    : m_a(a)", 0},
+                               {"    , m_b(b)", 0},
+                               {"    , m_c(c)", 0},
+                               {"{}", 0},
+                               {"", 0},
+                               {"void after() {", 0},
+                               {"    body;", 1},
+                               {"}", 0}};
+    fillDocument(doc, lines);
+    FakeGeometry geometry(lines.size(), 10, 40);
+    const SymbolIndex index{{{0, 0, 10}, {12, 12, 14}}};
+
+    const auto stateAt = [&](qreal top) {
+        geometry.top = top;
+        return computePanelState(&doc, geometry, 5, RefinedBraceScopeModel{index});
+    };
+
+    PanelState state = stateAt(30);
+    QCOMPARE(state.chain.rows, (QList<int>{0}));
+    QCOMPARE(state.pushOffset, 0.0);
+
+    state = stateAt(60);
+    QCOMPARE(state.chain.rows, (QList<int>{0}));
+    QCOMPARE(state.pushOffset, 0.0);
+
+    state = stateAt(80);
+    QCOMPARE(state.chain.rows, (QList<int>{0}));
+    QCOMPARE(state.pushOffset, 0.0);
+
+    state = stateAt(100);
+    QCOMPARE(state.pushOffset, 10.0);
+
+    state = stateAt(110);
+    QVERIFY(state.chain.rows.isEmpty());
 }
 
 static QStringList yamlDocument()

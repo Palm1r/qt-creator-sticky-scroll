@@ -206,6 +206,15 @@ void StickyScrollWidget::refresh()
     scheduleUpdate();
 }
 
+void StickyScrollWidget::setSymbolSpans(const QList<SymbolSpan> &spans, int docRevision)
+{
+    if (m_symbols.spans == spans && m_symbolsRevision == docRevision)
+        return;
+    m_symbols.spans = spans;
+    m_symbolsRevision = docRevision;
+    scheduleUpdate();
+}
+
 void StickyScrollWidget::scheduleUpdate()
 {
     if (m_updateTimer.isActive() && m_updateTimer.remainingTime() > 0)
@@ -225,7 +234,12 @@ void StickyScrollWidget::updateSticky()
     const int maxLines = maxStickyLines();
     TextDocument *textDocument = m_editor->textDocument();
     const ScopeFormat format = scopeFormatFor(textDocument->mimeType());
-    const PanelState state = computePanelStateFor(format, doc, editorGeometry, maxLines);
+    const bool symbolsFresh = format == ScopeFormat::Brace && !m_symbols.isEmpty()
+                              && m_symbolsRevision == doc->revision();
+    const PanelState state
+        = symbolsFresh ? computePanelState(doc, editorGeometry, maxLines,
+                                           RefinedBraceScopeModel{m_symbols})
+                       : computePanelStateFor(format, doc, editorGeometry, maxLines);
 
     if (state.chain.rows.isEmpty()) {
         m_state = state;
