@@ -1,7 +1,7 @@
 {
     "Id" : "stickyscroll",
     "Name" : "Sticky Scroll",
-    "Version" : "0.9.0",
+    "Version" : "0.9.1",
     "CompatVersion" : "${IDE_VERSION_COMPAT}",
     "Vendor" : "Petr Mironychev",
     "VendorId" : "petrmironychev",

@@ -10,10 +10,13 @@
 
 #include <coreplugin/editormanager/documentmodel.h>
 #include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/icore.h>
 
 #include <extensionsystem/iplugin.h>
 
 #include <texteditor/texteditor.h>
+
+#include <QTranslator>
 
 using namespace Core;
 
@@ -27,6 +30,8 @@ class StickyScrollPlugin final : public ExtensionSystem::IPlugin
 public:
     void initialize() final
     {
+        installTranslator();
+
         connect(&settings().enabled, &Utils::BaseAspect::changed,
                 this, &StickyScrollPlugin::applySettings);
         connect(&settings().maxLines, &Utils::BaseAspect::changed,
@@ -72,6 +77,23 @@ private:
             }
         }
     }
+
+    void installTranslator()
+    {
+        auto translator = new QTranslator(this);
+        if (translator->load(
+                QLocale(Core::ICore::userInterfaceLanguage()),
+                "StickyScroll",
+                "_",
+                ":/translations")) {
+            QCoreApplication::installTranslator(translator);
+            m_translator = translator;
+        } else {
+            delete translator;
+        }
+    }
+
+    QTranslator *m_translator = nullptr;
 };
 
 }
