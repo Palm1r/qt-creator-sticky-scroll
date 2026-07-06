@@ -208,9 +208,9 @@ void StickyScrollWidget::refresh()
 
 void StickyScrollWidget::setSymbolSpans(const QList<SymbolSpan> &spans, int docRevision)
 {
-    if (m_symbols.spans == spans && m_symbolsRevision == docRevision)
+    if (m_symbols.spans() == spans && m_symbolsRevision == docRevision)
         return;
-    m_symbols.spans = spans;
+    m_symbols.setSpans(spans);
     m_symbolsRevision = docRevision;
     scheduleUpdate();
 }
@@ -312,7 +312,8 @@ qreal StickyScrollWidget::lineHeight() const
     const qreal spacing = fontSettings.lineSpacing();
     if (spacing > 0)
         return spacing;
-    return QFontMetricsF(fontSettings.font()).lineSpacing();
+    const qreal fallback = QFontMetricsF(fontSettings.font()).lineSpacing();
+    return fallback > 0 ? fallback : 1;
 }
 
 void StickyScrollWidget::paintEvent(QPaintEvent *)

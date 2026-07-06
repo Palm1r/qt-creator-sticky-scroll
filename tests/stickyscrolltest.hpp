@@ -32,6 +32,7 @@ private slots:
     void testRefinedModelPanelState();
     void testSymbolScopePinsThroughInitializerList();
     void testBudgetDropsWholeScopes();
+    void testInnermostRowCountClampedToBudget();
     void testSiblingScopes();
     void testParenBalancePrefersHighlighterData();
     void testInvalidBlockNumber();

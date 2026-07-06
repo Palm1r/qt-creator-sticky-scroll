@@ -18,9 +18,6 @@ option(WITH_TESTS "Builds with tests" NO)
 
 if(WITH_TESTS)
   find_package(Qt6 REQUIRED COMPONENTS Test)
-
-  set(IMPLICIT_DEPENDS Qt::Test)
-
   enable_testing()
 endif()
 

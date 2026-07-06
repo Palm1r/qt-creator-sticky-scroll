@@ -323,6 +323,21 @@ void StickyScrollTest::testBudgetDropsWholeScopes()
     QCOMPARE(full.rows, (QList<int>{0, 1, 2}));
 }
 
+void StickyScrollTest::testInnermostRowCountClampedToBudget()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"void foo(int a,", 0},
+                  {"         int b)", 0},
+                  {"{", 0},
+                  {"    body;", 1}});
+
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 1);
+    QVERIFY(chain.rows.isEmpty());
+    QCOMPARE(chain.innermostRowCount, 0);
+    QVERIFY(chain.firstInnermostRow() >= 0);
+}
+
 void StickyScrollTest::testSiblingScopes()
 {
     QTextDocument doc;

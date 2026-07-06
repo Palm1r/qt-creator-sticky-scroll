@@ -156,6 +156,13 @@ public:
 #endif
     }
 
+    ShutdownFlag aboutToShutdown() final
+    {
+        if (m_translator)
+            QCoreApplication::removeTranslator(m_translator);
+        return SynchronousShutdown;
+    }
+
 private:
     void attachToEditor(IEditor *editor)
     {

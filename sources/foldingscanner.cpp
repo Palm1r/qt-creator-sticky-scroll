@@ -136,6 +136,10 @@ ScopeChain FoldingScanner::enclosingHeaders(const QTextDocument *doc, int blockN
             break;
         chain.rows = header + chain.rows;
     }
+    if (chain.innermostRowCount > chain.rows.size()) {
+        chain.innermostRowCount = 0;
+        chain.innermostFoldStart = -1;
+    }
     return chain;
 }
 
@@ -303,7 +307,7 @@ ScopeChain FoldingScanner::headingHeaders(const QTextDocument *doc, int blockNum
     ScopeChain chain;
     chain.innermostFoldStart = stack.last().second;
     chain.innermostRowCount = 1;
-    for (int i = std::max(0, int(stack.size()) - maxLines); i < stack.size(); ++i)
+    for (int i = (std::max)(0, int(stack.size()) - maxLines); i < stack.size(); ++i)
         chain.rows.append(stack.at(i).second);
     return chain;
 }

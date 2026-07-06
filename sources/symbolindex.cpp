@@ -17,15 +17,15 @@ const SymbolSpan *SymbolIndex::ownerOf(const QTextBlock &foldStart) const
     const int foldLine = foldStart.blockNumber();
     const auto cached = m_ownerCache.constFind(foldLine);
     if (cached != m_ownerCache.constEnd())
-        return *cached >= 0 ? &spans.at(*cached) : nullptr;
+        return *cached >= 0 ? &m_spans.at(*cached) : nullptr;
 
     const auto remember = [&](const SymbolSpan *result) -> const SymbolSpan * {
-        m_ownerCache.insert(foldLine, result ? int(result - spans.constData()) : -1);
+        m_ownerCache.insert(foldLine, result ? int(result - m_spans.constData()) : -1);
         return result;
     };
 
     const SymbolSpan *owner = nullptr;
-    for (const SymbolSpan &span : spans) {
+    for (const SymbolSpan &span : m_spans) {
         if (foldLine < span.firstLine || foldLine > span.lastLine)
             continue;
         const int nameDistance = foldLine - span.nameLine;
@@ -68,7 +68,7 @@ ScopeChain SymbolIndex::mergeEnclosingScopes(const QTextDocument *doc, ScopeChai
                                              int blockNumber, int maxLines) const
 {
     QList<const SymbolSpan *> enclosing;
-    for (const SymbolSpan &span : spans) {
+    for (const SymbolSpan &span : m_spans) {
         if (span.nameLine < blockNumber && blockNumber <= span.lastLine)
             enclosing.append(&span);
     }
