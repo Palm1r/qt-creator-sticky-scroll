@@ -219,6 +219,26 @@ void StickyScrollTest::testMultilineSignatureWithInitializer()
     QCOMPARE(chain.innermostRowCount, 2);
 }
 
+void StickyScrollTest::testTernaryElseBranchIsNotInitializer()
+{
+    QTextDocument doc;
+    fillDocument(doc,
+                 {{"inline Tone toneFor(bool dark)", 0},
+                  {"{", 0},
+                  {"    return dark", 1},
+                  {"        ? Tone{1, 2}", 1},
+                  {"        : Tone{", 1},
+                  {"              3,", 2},
+                  {"              4,", 2},
+                  {"              5", 2},
+                  {"        };", 1},
+                  {"}", 0}});
+
+    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 6, 5);
+    QCOMPARE(chain.rows, (QList<int>{0, 4}));
+    QCOMPARE(chain.innermostFoldStart, 4);
+}
+
 static FoldingScanner::HeaderResolver resolverFor(const SymbolIndex &index)
 {
     return [index](const QTextBlock &foldStart) { return index.headerRowsFor(foldStart); };

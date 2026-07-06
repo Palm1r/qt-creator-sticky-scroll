@@ -83,7 +83,8 @@ QList<int> FoldingScanner::headerRows(const QTextBlock &foldStart)
 {
     const bool braceOnOwnLine = foldStart.text().trimmed() == QLatin1String("{");
     const QTextBlock candidate = braceOnOwnLine ? declarationAbove(foldStart) : foldStart;
-    const QTextBlock headerBottom = skipInitializerClause(candidate, braceOnOwnLine);
+    const QTextBlock headerBottom = braceOnOwnLine ? skipInitializerClause(candidate, braceOnOwnLine)
+                                                   : candidate;
 
     QList<int> rows{headerBottom.blockNumber()};
     int unmatchedCloseParens = -parenBalance(headerBottom);

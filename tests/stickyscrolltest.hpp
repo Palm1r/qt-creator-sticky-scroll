@@ -24,6 +24,7 @@ private slots:
     void testTrailingStyleInitializerList();
     void testWrappedInitializerArguments();
     void testMultilineSignatureWithInitializer();
+    void testTernaryElseBranchIsNotInitializer();
     void testSymbolResolverRefinesHeader();
     void testSymbolResolverSkipsControlFlow();
     void testSymbolResolverPicksNearestSymbol();
