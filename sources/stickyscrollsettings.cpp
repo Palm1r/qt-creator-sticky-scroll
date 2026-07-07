@@ -32,11 +32,17 @@ StickyScrollSettings::StickyScrollSettings()
     maxLines.setRange(1, 10);
     maxLines.setLabelText(Tr::tr("Maximum number of pinned lines:"));
 
+    followHorizontalScroll.setSettingsKey("FollowHorizontalScroll");
+    followHorizontalScroll.setDefaultValue(false);
+    followHorizontalScroll.setLabelText(
+        Tr::tr("Scroll pinned lines horizontally with the editor"));
+
     setLayouter([this] {
         using namespace Layouting;
         return Column {
             enabled,
             Row { maxLines, st },
+            followHorizontalScroll,
             st,
         };
     });

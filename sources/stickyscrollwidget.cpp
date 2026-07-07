@@ -148,7 +148,10 @@ StickyScrollWidget::StickyScrollWidget(TextEditorWidget *editor)
     connect(editor->verticalScrollBar(), &QScrollBar::rangeChanged,
             this, &StickyScrollWidget::scheduleUpdate);
     connect(editor->horizontalScrollBar(), &QScrollBar::valueChanged,
-            this, [this] { update(); });
+            this, [this] {
+                if (settings().followHorizontalScroll())
+                    update();
+            });
     connect(editor, &TextEditorWidget::resized, this, &StickyScrollWidget::scheduleUpdate);
 
     connect(editor, &Utils::PlainTextEdit::updateRequest,
@@ -204,6 +207,7 @@ void StickyScrollWidget::hidePanel()
 void StickyScrollWidget::refresh()
 {
     scheduleUpdate();
+    update();
 }
 
 void StickyScrollWidget::setSymbolSpans(const QList<SymbolSpan> &spans, int docRevision)
@@ -347,8 +351,10 @@ void StickyScrollWidget::paintEvent(QPaintEvent *)
     QTextOption option = doc->defaultTextOption();
     option.setWrapMode(QTextOption::NoWrap);
 
-    const qreal xOffset = gutterWidth + doc->documentMargin()
-                          - m_editor->horizontalScrollBar()->value();
+    const int horizontalScroll = settings().followHorizontalScroll()
+                                     ? m_editor->horizontalScrollBar()->value()
+                                     : 0;
+    const qreal xOffset = gutterWidth + doc->documentMargin() - horizontalScroll;
     const int firstInnermostRow = m_state.chain.firstInnermostRow();
 
     for (int i = 0; i < m_state.chain.rows.size(); ++i) {
@@ -393,7 +399,11 @@ void StickyScrollWidget::paintEvent(QPaintEvent *)
             m_layoutCache.insert(blockNumber, layout);
         }
         painter.setPen(baseFormat.foreground().color());
+        painter.save();
+        painter.setClipRect(QRectF(gutterWidth, 0, width() - gutterWidth, height()),
+                            Qt::IntersectClip);
         layout->draw(&painter, QPointF(xOffset, y));
+        painter.restore();
 
         if (sliding)
             painter.restore();
