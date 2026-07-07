@@ -9,7 +9,6 @@
     "License" : "MIT",
     "Category" : "Text Editor",
     "Description" : "Pins the enclosing scope headers (function, class, block, key, or heading) to the top of the editor while you scroll, so the surrounding context stays visible. Click a pinned line to jump to it.",
-    "LongDescription" : ${LONG_DESCRIPTION},
     "Url" : "https://github.com/Palm1r/qt-creator-sticky-scroll",
     "DocumentationUrl" : "https://github.com/Palm1r/qt-creator-sticky-scroll#readme",
     ${IDE_PLUGIN_DEPENDENCIES}
