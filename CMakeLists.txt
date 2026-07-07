@@ -48,6 +48,8 @@ add_qtc_plugin(StickyScroll
     sources/stickyscrollwidget.hpp
     sources/symbolindex.cpp
     sources/symbolindex.hpp
+    sources/symbolsynccontroller.cpp
+    sources/symbolsynccontroller.hpp
 )
 
 target_include_directories(StickyScroll PRIVATE sources)
