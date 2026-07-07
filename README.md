@@ -8,7 +8,7 @@ you are inside — always stays visible. Click a pinned line to jump to it. Togg
 the feature and set the maximum number of pinned lines on the **Sticky Scroll**
 page in the text editor settings.
 
-<img width="1708" height="868" alt="StickScrollDemo" src="https://github.com/user-attachments/assets/26b67e92-cfb0-4a3e-9e31-811eff992362" />
+<img width="600" height="305" alt="sticky-scroll-demo-600" src="https://github.com/user-attachments/assets/c7d105aa-b75f-493d-8bd7-10f8480c5b29" />
 
 ## Supported formats
 
