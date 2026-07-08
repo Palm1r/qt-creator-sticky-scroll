@@ -3,7 +3,9 @@
 
 #include "stickyscrolltest.hpp"
 
+#include "bracescopemodel.hpp"
 #include "panelstateengine.hpp"
+#include "scanutil.hpp"
 #include "scoperesolver.hpp"
 #include "symbolindex.hpp"
 
@@ -49,7 +51,7 @@ void StickyScrollTest::testFlatDocument()
     QTextDocument doc;
     fillDocument(doc, {{"int a;", 0}, {"int b;", 0}, {"int c;", 0}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 2, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 2, 5);
     QVERIFY(chain.rows.isEmpty());
     QCOMPARE(chain.innermostFoldStart, -1);
 }
@@ -64,7 +66,7 @@ void StickyScrollTest::testNestedSameLineBraces()
                   {"}", 1},
                   {"", 1}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 2, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 2, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 1}));
     QCOMPARE(chain.innermostFoldStart, 1);
     QCOMPARE(chain.innermostRowCount, 1);
@@ -80,7 +82,7 @@ void StickyScrollTest::testClosingBraceReportsOuterScopesOnly()
                   {"}", 1},
                   {"", 1}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 5);
     QCOMPARE(chain.rows, (QList<int>{0}));
 }
 
@@ -94,7 +96,7 @@ void StickyScrollTest::testBraceOnOwnLineShowsDeclaration()
                   {"    body;", 2},
                   {"}", 1}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 1}));
     QCOMPARE(chain.innermostFoldStart, 2);
     QCOMPARE(chain.innermostRowCount, 1);
@@ -111,7 +113,7 @@ void StickyScrollTest::testBraceOnOwnLineSkipsBlankLines()
                   {"    body;", 1}});
 
     const QTextBlock foldStart = doc.findBlockByNumber(3);
-    QCOMPARE(FoldingScanner::headerRows(foldStart), (QList<int>{0}));
+    QCOMPARE(BraceScanner::headerRows(foldStart), (QList<int>{0}));
 }
 
 void StickyScrollTest::testMultilineSignature()
@@ -123,7 +125,7 @@ void StickyScrollTest::testMultilineSignature()
                   {"{", 0},
                   {"    body;", 1}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 1}));
     QCOMPARE(chain.innermostRowCount, 2);
     QCOMPARE(chain.innermostFoldStart, 2);
@@ -139,7 +141,7 @@ void StickyScrollTest::testConstructorInitializerShowsSignature()
                   {"    body;", 1},
                   {"}", 0}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 5);
     QCOMPARE(chain.rows, (QList<int>{0}));
     QCOMPARE(chain.innermostFoldStart, 2);
     QCOMPARE(chain.innermostRowCount, 1);
@@ -156,7 +158,7 @@ void StickyScrollTest::testConstructorCommaInitializersShowSignature()
                   {"    body;", 1},
                   {"}", 0}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 4, 5);
     QCOMPARE(chain.rows, (QList<int>{0}));
 }
 
@@ -170,7 +172,7 @@ void StickyScrollTest::testClassBaseClauseOnOwnLine()
                   {"    int m;", 1},
                   {"};", 0}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 5);
     QCOMPARE(chain.rows, (QList<int>{0}));
 }
 
@@ -185,7 +187,7 @@ void StickyScrollTest::testTrailingStyleInitializerList()
                   {"    body;", 1},
                   {"}", 0}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 4, 5);
     QCOMPARE(chain.rows, (QList<int>{0}));
 }
 
@@ -200,7 +202,7 @@ void StickyScrollTest::testWrappedInitializerArguments()
                   {"    body;", 1},
                   {"}", 0}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 4, 5);
     QCOMPARE(chain.rows, (QList<int>{0}));
 }
 
@@ -215,7 +217,7 @@ void StickyScrollTest::testMultilineSignatureWithInitializer()
                   {"    body;", 1},
                   {"}", 0}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 4, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 1}));
     QCOMPARE(chain.innermostRowCount, 2);
 }
@@ -235,12 +237,12 @@ void StickyScrollTest::testTernaryElseBranchIsNotInitializer()
                   {"        };", 1},
                   {"}", 0}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 6, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 6, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 4}));
     QCOMPARE(chain.innermostFoldStart, 4);
 }
 
-static FoldingScanner::HeaderResolver resolverFor(const SymbolIndex &index)
+static BraceScanner::HeaderResolver resolverFor(const SymbolIndex &index)
 {
     return [index](const QTextBlock &foldStart) { return index.headerRowsFor(foldStart); };
 }
@@ -255,10 +257,10 @@ void StickyScrollTest::testSymbolResolverRefinesHeader()
                   {"    body;", 1},
                   {"}", 0}});
 
-    QCOMPARE(FoldingScanner::enclosingHeaders(&doc, 3, 5).rows, (QList<int>{1}));
+    QCOMPARE(BraceScanner::enclosingHeaders(&doc, 3, 5).rows, (QList<int>{1}));
 
     const SymbolIndex index{{{0, 0, 4}}};
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
     QCOMPARE(chain.rows, (QList<int>{0}));
 }
 
@@ -274,7 +276,7 @@ void StickyScrollTest::testSymbolResolverSkipsControlFlow()
                   {"}", 0}});
 
     const SymbolIndex index{{{0, 0, 5}}};
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
     QCOMPARE(chain.rows, (QList<int>{0, 2}));
     QCOMPARE(chain.innermostFoldStart, 2);
 }
@@ -291,7 +293,7 @@ void StickyScrollTest::testSymbolResolverPicksNearestSymbol()
                   {"};", 0}});
 
     const SymbolIndex index{{{0, 0, 5}, {2, 2, 4}}};
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
     QCOMPARE(chain.rows, (QList<int>{0, 2}));
 }
 
@@ -307,7 +309,7 @@ void StickyScrollTest::testSymbolResolverExtendsWrappedSignature()
                   {"}", 0}});
 
     const SymbolIndex index{{{0, 0, 5}}};
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 4, 5, resolverFor(index));
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 4, 5, resolverFor(index));
     QCOMPARE(chain.rows, (QList<int>{0, 1}));
     QCOMPARE(chain.innermostRowCount, 2);
 }
@@ -323,7 +325,7 @@ void StickyScrollTest::testSymbolResolverFallsBackOutsideSpans()
                   {"}", 0}});
 
     const SymbolIndex index{{{10, 10, 20}}};
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 5, resolverFor(index));
     QCOMPARE(chain.rows, (QList<int>{1}));
 }
 
@@ -336,11 +338,11 @@ void StickyScrollTest::testBudgetDropsWholeScopes()
                   {"        void c() {", 2},
                   {"            body;", 3}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 2);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 2);
     QCOMPARE(chain.rows, (QList<int>{1, 2}));
     QCOMPARE(chain.innermostFoldStart, 2);
 
-    const ScopeChain full = FoldingScanner::enclosingHeaders(&doc, 3, 5);
+    const ScopeChain full = BraceScanner::enclosingHeaders(&doc, 3, 5);
     QCOMPARE(full.rows, (QList<int>{0, 1, 2}));
 }
 
@@ -353,7 +355,7 @@ void StickyScrollTest::testInnermostRowCountClampedToBudget()
                   {"{", 0},
                   {"    body;", 1}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 3, 1);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 3, 1);
     QVERIFY(chain.rows.isEmpty());
     QCOMPARE(chain.innermostRowCount, 0);
     QVERIFY(chain.firstInnermostRow() >= 0);
@@ -371,7 +373,7 @@ void StickyScrollTest::testSiblingScopes()
                   {"    body;", 2},
                   {"}", 1}});
 
-    const ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, 5, 5);
+    const ScopeChain chain = BraceScanner::enclosingHeaders(&doc, 5, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 4}));
     QCOMPARE(chain.innermostFoldStart, 4);
 }
@@ -382,13 +384,13 @@ void StickyScrollTest::testParenBalancePrefersHighlighterData()
     fillDocument(doc, {{"foo(\"(\")", 0}});
 
     const QTextBlock block = doc.firstBlock();
-    QCOMPARE(FoldingScanner::parenBalance(block), 1);
+    QCOMPARE(parenBalance(block), 1);
 
     Parentheses parens;
     parens << Parenthesis(Parenthesis::Opened, QLatin1Char('('), 3)
            << Parenthesis(Parenthesis::Closed, QLatin1Char(')'), 7);
     TextBlockUserData::setParentheses(block, parens);
-    QCOMPARE(FoldingScanner::parenBalance(block), 0);
+    QCOMPARE(parenBalance(block), 0);
 }
 
 void StickyScrollTest::testInvalidBlockNumber()
@@ -396,8 +398,8 @@ void StickyScrollTest::testInvalidBlockNumber()
     QTextDocument doc;
     fillDocument(doc, {{"int a;", 0}});
 
-    QVERIFY(FoldingScanner::enclosingHeaders(&doc, -1, 5).rows.isEmpty());
-    QVERIFY(FoldingScanner::enclosingHeaders(&doc, 100, 5).rows.isEmpty());
+    QVERIFY(BraceScanner::enclosingHeaders(&doc, -1, 5).rows.isEmpty());
+    QVERIFY(BraceScanner::enclosingHeaders(&doc, 100, 5).rows.isEmpty());
 }
 
 class FakeGeometry
@@ -543,29 +545,6 @@ void StickyScrollTest::testPanelStateNoFlickerOnLinearScroll()
     }
 }
 
-void StickyScrollTest::testChainProviderDecorator()
-{
-    QTextDocument doc;
-    const QList<Line> lines = scrollScenarioDocument();
-    fillDocument(doc, lines);
-    FakeGeometry geometry(lines.size(), 10, 60);
-    geometry.top = 50;
-
-    const FoldingScanner::ChainProvider onlyOutermost = [&doc](int blockNumber, int maxLines) {
-        ScopeChain chain = FoldingScanner::enclosingHeaders(&doc, blockNumber, maxLines);
-        if (chain.rows.size() > 1) {
-            chain.rows = {chain.rows.first()};
-            chain.innermostRowCount = 1;
-            chain.innermostFoldStart = chain.rows.first();
-        }
-        return chain;
-    };
-
-    const PanelState state = computePanelState(&doc, geometry, 5,
-                                               ProviderScopeModel{onlyOutermost});
-    QCOMPARE(state.chain.rows, (QList<int>{0}));
-}
-
 void StickyScrollTest::testRefinedModelPanelState()
 {
     QTextDocument doc;
@@ -709,16 +688,16 @@ void StickyScrollTest::testHeadingHeadersMarkdown()
     QTextDocument doc;
     fillText(doc, markdownDocument());
 
-    ScopeChain chain = FoldingScanner::headingHeaders(&doc, 7, 5);
+    ScopeChain chain = MarkdownScopeModel{}.enclosing(&doc, 7, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 2, 4, 6}));
     QCOMPARE(chain.innermostFoldStart, 6);
     QCOMPARE(chain.innermostRowCount, 1);
 
-    chain = FoldingScanner::headingHeaders(&doc, 10, 5);
+    chain = MarkdownScopeModel{}.enclosing(&doc, 10, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 9}));
     QCOMPARE(chain.innermostFoldStart, 9);
 
-    chain = FoldingScanner::headingHeaders(&doc, 6, 5);
+    chain = MarkdownScopeModel{}.enclosing(&doc, 6, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 2, 4}));
 }
 
@@ -727,7 +706,7 @@ void StickyScrollTest::testHeadingHeadersBudgetDropsOuterSections()
     QTextDocument doc;
     fillText(doc, markdownDocument());
 
-    const ScopeChain chain = FoldingScanner::headingHeaders(&doc, 7, 2);
+    const ScopeChain chain = MarkdownScopeModel{}.enclosing(&doc, 7, 2);
     QCOMPARE(chain.rows, (QList<int>{4, 6}));
     QCOMPARE(chain.innermostFoldStart, 6);
 }
@@ -744,9 +723,9 @@ void StickyScrollTest::testHeadingHeadersSkipsFencedCode()
               "```",
               "text after"});
 
-    QCOMPARE(FoldingScanner::headingHeaders(&doc, 6, 5).rows, (QList<int>{0}));
-    QCOMPARE(FoldingScanner::headingHeaders(&doc, 4, 5).rows, (QList<int>{0}));
-    QVERIFY(!FoldingScanner::isHeadingFoldStart(doc.findBlockByNumber(3)));
+    QCOMPARE(MarkdownScopeModel{}.enclosing(&doc, 6, 5).rows, (QList<int>{0}));
+    QCOMPARE(MarkdownScopeModel{}.enclosing(&doc, 4, 5).rows, (QList<int>{0}));
+    QVERIFY(!MarkdownScopeModel{}.isFoldStart(doc.findBlockByNumber(3)));
 }
 
 void StickyScrollTest::testHeadingHeadersTopLevelHasNoChain()
@@ -754,10 +733,10 @@ void StickyScrollTest::testHeadingHeadersTopLevelHasNoChain()
     QTextDocument doc;
     fillText(doc, {"preamble", "# Title", "body", "## Sub", "more"});
 
-    QVERIFY(FoldingScanner::headingHeaders(&doc, 0, 5).rows.isEmpty());
-    QVERIFY(FoldingScanner::headingHeaders(&doc, 1, 5).rows.isEmpty());
-    QVERIFY(FoldingScanner::headingHeaders(&doc, -1, 5).rows.isEmpty());
-    QVERIFY(FoldingScanner::headingHeaders(&doc, 100, 5).rows.isEmpty());
+    QVERIFY(MarkdownScopeModel{}.enclosing(&doc, 0, 5).rows.isEmpty());
+    QVERIFY(MarkdownScopeModel{}.enclosing(&doc, 1, 5).rows.isEmpty());
+    QVERIFY(MarkdownScopeModel{}.enclosing(&doc, -1, 5).rows.isEmpty());
+    QVERIFY(MarkdownScopeModel{}.enclosing(&doc, 100, 5).rows.isEmpty());
 }
 
 void StickyScrollTest::testMarkdownPanelStatePinsOnReach()
@@ -795,16 +774,16 @@ void StickyScrollTest::testIndentationHeadersYaml()
     QTextDocument doc;
     fillText(doc, yamlDocument());
 
-    ScopeChain chain = FoldingScanner::indentationHeaders(&doc, 4, 5);
+    ScopeChain chain = IndentationScopeModel{}.enclosing(&doc, 4, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 1, 2, 3}));
     QCOMPARE(chain.innermostFoldStart, 3);
     QCOMPARE(chain.innermostRowCount, 1);
 
-    chain = FoldingScanner::indentationHeaders(&doc, 8, 5);
+    chain = IndentationScopeModel{}.enclosing(&doc, 8, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 7}));
     QCOMPARE(chain.innermostFoldStart, 7);
 
-    chain = FoldingScanner::indentationHeaders(&doc, 1, 5);
+    chain = IndentationScopeModel{}.enclosing(&doc, 1, 5);
     QCOMPARE(chain.rows, (QList<int>{0}));
 }
 
@@ -825,11 +804,11 @@ void StickyScrollTest::testIndentationHeadersFlushSequence()
               "            os: ubuntu,",
               "          }"});
 
-    const ScopeChain onEntry = FoldingScanner::indentationHeaders(&doc, 9, 5);
+    const ScopeChain onEntry = IndentationScopeModel{}.enclosing(&doc, 9, 5);
     QCOMPARE(onEntry.rows, (QList<int>{0, 1, 6, 7, 8}));
     QCOMPARE(onEntry.innermostFoldStart, 8);
 
-    const ScopeChain insideEntry = FoldingScanner::indentationHeaders(&doc, 10, 5);
+    const ScopeChain insideEntry = IndentationScopeModel{}.enclosing(&doc, 10, 5);
     QCOMPARE(insideEntry.rows, (QList<int>{1, 6, 7, 8, 9}));
     QCOMPARE(insideEntry.innermostFoldStart, 9);
 
@@ -844,11 +823,11 @@ void StickyScrollTest::testIndentationHeadersBudgetDropsOuterScopes()
     QTextDocument doc;
     fillText(doc, {"a:", "  b:", "    c:", "      d:", "        e: v"});
 
-    const ScopeChain narrow = FoldingScanner::indentationHeaders(&doc, 4, 2);
+    const ScopeChain narrow = IndentationScopeModel{}.enclosing(&doc, 4, 2);
     QCOMPARE(narrow.rows, (QList<int>{2, 3}));
     QCOMPARE(narrow.innermostFoldStart, 3);
 
-    const ScopeChain wide = FoldingScanner::indentationHeaders(&doc, 4, 5);
+    const ScopeChain wide = IndentationScopeModel{}.enclosing(&doc, 4, 5);
     QCOMPARE(wide.rows, (QList<int>{0, 1, 2, 3}));
 }
 
@@ -857,7 +836,7 @@ void StickyScrollTest::testIndentationHeadersSkipsBlankLines()
     QTextDocument doc;
     fillText(doc, {"parent:", "  child:", "", "    value: x"});
 
-    const ScopeChain chain = FoldingScanner::indentationHeaders(&doc, 3, 5);
+    const ScopeChain chain = IndentationScopeModel{}.enclosing(&doc, 3, 5);
     QCOMPARE(chain.rows, (QList<int>{0, 1}));
     QCOMPARE(chain.innermostFoldStart, 1);
 }
@@ -867,9 +846,9 @@ void StickyScrollTest::testIndentationHeadersTopLevelHasNoChain()
     QTextDocument doc;
     fillText(doc, yamlDocument());
 
-    QVERIFY(FoldingScanner::indentationHeaders(&doc, 0, 5).rows.isEmpty());
-    QVERIFY(FoldingScanner::indentationHeaders(&doc, -1, 5).rows.isEmpty());
-    QVERIFY(FoldingScanner::indentationHeaders(&doc, 100, 5).rows.isEmpty());
+    QVERIFY(IndentationScopeModel{}.enclosing(&doc, 0, 5).rows.isEmpty());
+    QVERIFY(IndentationScopeModel{}.enclosing(&doc, -1, 5).rows.isEmpty());
+    QVERIFY(IndentationScopeModel{}.enclosing(&doc, 100, 5).rows.isEmpty());
 }
 
 void StickyScrollTest::testIndentationPanelStateNoFlicker()

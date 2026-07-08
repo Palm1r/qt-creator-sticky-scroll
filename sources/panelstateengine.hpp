@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "foldingscanner.hpp"
+#include "scanutil.hpp"
 #include "scopemodels.hpp"
 #include "stickyscrolltypes.hpp"
 
@@ -153,7 +153,7 @@ private:
 
             qCDebug(stickyLog).noquote()
                 << "capture: below" << belowNumber + 1
-                << "group" << FoldingScanner::logLines(group).join(',')
+                << "group" << logLines(group).join(',')
                 << "foldStart" << foldStartNumber + 1
                 << "headerTop" << *headerTop
                 << "slotTop" << chain.rows.size() * rowHeight;

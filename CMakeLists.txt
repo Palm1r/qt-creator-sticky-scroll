@@ -35,9 +35,16 @@ add_qtc_plugin(StickyScroll
     .github/workflows/build_cmake.yml
     .github/workflows/README.md
     README.md
-    sources/foldingscanner.cpp
-    sources/foldingscanner.hpp
+    sources/bracescopemodel.cpp
+    sources/bracescopemodel.hpp
+    sources/indentationscopemodel.cpp
+    sources/indentationscopemodel.hpp
+    sources/markdownscopemodel.cpp
+    sources/markdownscopemodel.hpp
     sources/panelstateengine.hpp
+    sources/scanutil.cpp
+    sources/scanutil.hpp
+    sources/scopemodel.hpp
     sources/scopemodels.hpp
     sources/scoperesolver.hpp
     sources/stickyscroll.cpp

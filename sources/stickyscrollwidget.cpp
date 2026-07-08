@@ -3,6 +3,7 @@
 
 #include "stickyscrollwidget.hpp"
 
+#include "scanutil.hpp"
 #include "scoperesolver.hpp"
 #include "stickyscrollsettings.hpp"
 
@@ -238,7 +239,7 @@ void StickyScrollWidget::updateSticky()
 
     qCDebug(stickyLog).noquote()
         << "update: top line" << m_editor->firstVisibleBlockNumber() + 1
-        << "| rows" << FoldingScanner::logLines(m_state.chain.rows).join(',')
+        << "| rows" << logLines(m_state.chain.rows).join(',')
         << "| innermost start" << m_state.chain.innermostFoldStart + 1
         << "rowCount" << m_state.chain.innermostRowCount
         << "| fullHeight" << fullHeight << "push" << m_state.pushOffset

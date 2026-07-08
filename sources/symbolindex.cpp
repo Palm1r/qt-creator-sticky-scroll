@@ -3,7 +3,7 @@
 
 #include "symbolindex.hpp"
 
-#include "foldingscanner.hpp"
+#include "scanutil.hpp"
 
 #include <texteditor/textdocumentlayout.h>
 
@@ -103,14 +103,14 @@ QList<int> SymbolIndex::signatureRows(const QTextDocument *doc, const SymbolSpan
         return {};
 
     QList<int> rows{span.nameLine};
-    int openParens = FoldingScanner::parenBalance(nameBlock);
+    int openParens = parenBalance(nameBlock);
     QTextBlock line = nameBlock;
     while (openParens > 0 && rows.size() < kMaxHeaderRows) {
         line = line.next();
         if (!line.isValid() || line.blockNumber() > span.lastLine)
             break;
         rows.append(line.blockNumber());
-        openParens += FoldingScanner::parenBalance(line);
+        openParens += parenBalance(line);
     }
     if (openParens > 0)
         return {span.nameLine};

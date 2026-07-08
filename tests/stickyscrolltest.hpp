@@ -39,7 +39,6 @@ private slots:
     void testInvalidBlockNumber();
     void testPanelStateCheckpoints();
     void testPanelStateNoFlickerOnLinearScroll();
-    void testChainProviderDecorator();
     void testIndentationDeepNestPinsOnReach();
     void testHeadingHeadersMarkdown();
     void testHeadingHeadersBudgetDropsOuterSections();
