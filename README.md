@@ -34,6 +34,7 @@ Configure the plugin under **Settings → Text Editor → Sticky Scroll**:
   default).
 - **Maximum number of pinned lines** — how many scope headers may stay pinned at
   once (1–10, default 5).
+- **Horizontal pinning** — should pinned follow to horizontal scroll
 
 ## Installation
 
