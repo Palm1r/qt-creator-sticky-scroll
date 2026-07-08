@@ -12,6 +12,10 @@
         <translation>Maximalt antal fästa rader:</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Rulla fästa rader vågrätt med editorn</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Klistrig rullning</translation>
     </message>

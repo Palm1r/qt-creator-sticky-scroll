@@ -12,6 +12,10 @@
         <translation>Maximum number of pinned lines:</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Scroll pinned lines horizontally with the editor</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Sticky Scroll</translation>
     </message>

@@ -12,6 +12,10 @@
         <translation>Nombre maximal de lignes épinglées :</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Faire défiler les lignes épinglées horizontalement avec l'éditeur</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Défilement épinglé</translation>
     </message>

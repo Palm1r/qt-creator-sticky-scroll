@@ -12,6 +12,10 @@
         <translation>Максимальна кількість закріплених рядків:</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Прокручувати закріплені рядки горизонтально разом із редактором</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Липке прокручування</translation>
     </message>

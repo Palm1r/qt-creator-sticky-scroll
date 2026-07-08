@@ -12,6 +12,10 @@
         <translation>Najveći broj prikvačenih redaka:</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Vodoravno pomiči prikvačene retke s uređivačem</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Ljepljivo pomicanje</translation>
     </message>

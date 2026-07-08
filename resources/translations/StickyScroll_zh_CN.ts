@@ -12,6 +12,10 @@
         <translation>固定行的最大数量：</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>随编辑器水平滚动固定行</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>粘性滚动</translation>
     </message>

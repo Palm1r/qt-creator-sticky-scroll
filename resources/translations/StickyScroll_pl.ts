@@ -12,6 +12,10 @@
         <translation>Maksymalna liczba przypiętych wierszy:</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Przewijaj przypięte wiersze poziomo wraz z edytorem</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Przyklejone przewijanie</translation>
     </message>

@@ -12,6 +12,10 @@
         <translation>Največje število pripetih vrstic:</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Vodoravno pomikaj pripete vrstice z urejevalnikom</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Lepljivo drsenje</translation>
     </message>

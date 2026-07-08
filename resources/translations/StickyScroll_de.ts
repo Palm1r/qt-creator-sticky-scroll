@@ -12,6 +12,10 @@
         <translation>Maximale Anzahl angehefteter Zeilen:</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Angeheftete Zeilen horizontal mit dem Editor scrollen</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Sticky Scroll</translation>
     </message>

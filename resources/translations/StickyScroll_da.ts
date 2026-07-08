@@ -12,6 +12,10 @@
         <translation>Maksimalt antal fastgjorte linjer:</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Rul fastgjorte linjer vandret med editoren</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Klæbrig rulning</translation>
     </message>

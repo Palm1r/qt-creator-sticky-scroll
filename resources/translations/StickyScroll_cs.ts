@@ -12,6 +12,10 @@
         <translation>Maximální počet připnutých řádků:</translation>
     </message>
     <message>
+        <source>Scroll pinned lines horizontally with the editor</source>
+        <translation>Posouvat připnuté řádky vodorovně s editorem</translation>
+    </message>
+    <message>
         <source>Sticky Scroll</source>
         <translation>Lepivé posouvání</translation>
     </message>
