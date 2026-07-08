@@ -52,6 +52,12 @@ private slots:
     void testIndentationHeadersSkipsBlankLines();
     void testIndentationHeadersTopLevelHasNoChain();
     void testIndentationPanelStateNoFlicker();
+    void testResolverBraceDefaultWithoutSymbols();
+    void testResolverBraceRefinesWithFreshSymbols();
+    void testResolverBraceFallsBackOnStaleSymbols();
+    void testResolverYamlUsesIndentation();
+    void testResolverMarkdownUsesHeadings();
+    void testResolverUnknownMimeUsesBrace();
 };
 
 }

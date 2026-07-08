@@ -39,6 +39,7 @@ add_qtc_plugin(StickyScroll
     sources/foldingscanner.hpp
     sources/panelstateengine.hpp
     sources/scopemodels.hpp
+    sources/scoperesolver.hpp
     sources/stickyscroll.cpp
     sources/stickyscrolltypes.hpp
     sources/stickyscrollsettings.cpp

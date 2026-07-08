@@ -4,6 +4,7 @@
 #include "stickyscrolltest.hpp"
 
 #include "panelstateengine.hpp"
+#include "scoperesolver.hpp"
 #include "symbolindex.hpp"
 
 #include <texteditor/textdocumentlayout.h>
@@ -916,6 +917,110 @@ void StickyScrollTest::testIndentationPanelStateNoFlicker()
                                 .arg(it.key())
                                 .arg(transitionsToShown)));
     }
+}
+
+static QList<Line> refinableBraceDocument()
+{
+    return {{"void test()", 0},
+            {"FANCY_MACRO", 0},
+            {"{", 0},
+            {"    body1;", 1},
+            {"    body2;", 1},
+            {"    body3;", 1},
+            {"    body4;", 1},
+            {"}", 0}};
+}
+
+void StickyScrollTest::testResolverBraceDefaultWithoutSymbols()
+{
+    QTextDocument doc;
+    const QList<Line> lines = refinableBraceDocument();
+    fillDocument(doc, lines);
+    FakeGeometry geometry(lines.size(), 10, 40);
+    geometry.top = 30;
+
+    const SymbolIndex empty;
+    const PanelState viaResolver = computePanelState(
+        &doc, geometry, 5, ScopeContext{"text/x-c++src", empty, doc.revision()});
+    const PanelState viaBrace = computePanelState(&doc, geometry, 5);
+    QCOMPARE(viaResolver, viaBrace);
+}
+
+void StickyScrollTest::testResolverBraceRefinesWithFreshSymbols()
+{
+    QTextDocument doc;
+    const QList<Line> lines = refinableBraceDocument();
+    fillDocument(doc, lines);
+    FakeGeometry geometry(lines.size(), 10, 40);
+    geometry.top = 30;
+
+    const SymbolIndex index{{{0, 0, 7}}};
+    const PanelState viaResolver = computePanelState(
+        &doc, geometry, 5, ScopeContext{"text/x-c++src", index, doc.revision()});
+    const PanelState viaRefined = computePanelState(&doc, geometry, 5, RefinedBraceScopeModel{index});
+    QCOMPARE(viaResolver, viaRefined);
+    QCOMPARE(viaResolver.chain.rows, (QList<int>{0}));
+}
+
+void StickyScrollTest::testResolverBraceFallsBackOnStaleSymbols()
+{
+    QTextDocument doc;
+    const QList<Line> lines = refinableBraceDocument();
+    fillDocument(doc, lines);
+    FakeGeometry geometry(lines.size(), 10, 40);
+    geometry.top = 30;
+
+    const SymbolIndex index{{{0, 0, 7}}};
+    const PanelState viaResolver = computePanelState(
+        &doc, geometry, 5, ScopeContext{"text/x-c++src", index, doc.revision() - 1});
+    const PanelState viaBrace = computePanelState(&doc, geometry, 5);
+    QCOMPARE(viaResolver, viaBrace);
+    QVERIFY(viaResolver.chain.rows != (QList<int>{0}));
+}
+
+void StickyScrollTest::testResolverYamlUsesIndentation()
+{
+    QTextDocument doc;
+    fillText(doc, yamlDocument());
+    FakeGeometry geometry(doc.blockCount(), 10, 100);
+    geometry.top = 40;
+
+    const SymbolIndex empty;
+    const PanelState viaResolver = computePanelState(
+        &doc, geometry, 5, ScopeContext{"text/x-yaml", empty, doc.revision()});
+    const PanelState viaIndent = computePanelState(&doc, geometry, 5, IndentationScopeModel{});
+    QCOMPARE(viaResolver, viaIndent);
+    QVERIFY(!viaResolver.chain.rows.isEmpty());
+}
+
+void StickyScrollTest::testResolverMarkdownUsesHeadings()
+{
+    QTextDocument doc;
+    fillText(doc, markdownDocument());
+    FakeGeometry geometry(doc.blockCount(), 10, 100);
+    geometry.top = 70;
+
+    const SymbolIndex empty;
+    const PanelState viaResolver = computePanelState(
+        &doc, geometry, 5, ScopeContext{"text/markdown", empty, doc.revision()});
+    const PanelState viaMarkdown = computePanelState(&doc, geometry, 5, MarkdownScopeModel{});
+    QCOMPARE(viaResolver, viaMarkdown);
+    QVERIFY(!viaResolver.chain.rows.isEmpty());
+}
+
+void StickyScrollTest::testResolverUnknownMimeUsesBrace()
+{
+    QTextDocument doc;
+    const QList<Line> lines = refinableBraceDocument();
+    fillDocument(doc, lines);
+    FakeGeometry geometry(lines.size(), 10, 40);
+    geometry.top = 30;
+
+    const SymbolIndex empty;
+    const PanelState viaResolver = computePanelState(
+        &doc, geometry, 5, ScopeContext{"application/octet-stream", empty, doc.revision()});
+    const PanelState viaBrace = computePanelState(&doc, geometry, 5);
+    QCOMPARE(viaResolver, viaBrace);
 }
 
 }

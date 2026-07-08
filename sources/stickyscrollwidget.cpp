@@ -3,7 +3,7 @@
 
 #include "stickyscrollwidget.hpp"
 
-#include "panelstateengine.hpp"
+#include "scoperesolver.hpp"
 #include "stickyscrollsettings.hpp"
 
 #include <texteditor/fontsettings.h>
@@ -27,48 +27,6 @@
 using namespace TextEditor;
 
 namespace StickyScroll {
-
-enum class ScopeFormat { Brace, Indentation, Markdown };
-
-constexpr ScopeFormat kDefaultScopeFormat = ScopeFormat::Brace;
-
-static ScopeFormat scopeFormatFor(const QString &mimeType)
-{
-    static const QHash<QString, ScopeFormat> byMime = {
-        {"text/x-c++src", kDefaultScopeFormat},
-        {"text/x-c++hdr", kDefaultScopeFormat},
-        {"text/x-csrc", kDefaultScopeFormat},
-        {"text/x-chdr", kDefaultScopeFormat},
-        {"text/x-python", kDefaultScopeFormat},
-        {"application/json", kDefaultScopeFormat},
-        {"text/javascript", kDefaultScopeFormat},
-        {"application/javascript", kDefaultScopeFormat},
-        {"text/x-cmake", kDefaultScopeFormat},
-        {"text/x-qml", kDefaultScopeFormat},
-        {"text/x-yaml", ScopeFormat::Indentation},
-        {"text/yaml", ScopeFormat::Indentation},
-        {"application/x-yaml", ScopeFormat::Indentation},
-        {"application/yaml", ScopeFormat::Indentation},
-        {"text/markdown", ScopeFormat::Markdown},
-        {"text/x-markdown", ScopeFormat::Markdown},
-    };
-    return byMime.value(mimeType, kDefaultScopeFormat);
-}
-
-template <typename Geometry>
-static PanelState computePanelStateFor(ScopeFormat format, const QTextDocument *doc,
-                                       const Geometry &geometry, int maxLines)
-{
-    switch (format) {
-    case ScopeFormat::Indentation:
-        return computePanelState(doc, geometry, maxLines, IndentationScopeModel{});
-    case ScopeFormat::Markdown:
-        return computePanelState(doc, geometry, maxLines, MarkdownScopeModel{});
-    case ScopeFormat::Brace:
-        break;
-    }
-    return computePanelState(doc, geometry, maxLines);
-}
 
 const int kShadowHeight = 6;
 const int kShadowAlpha = 70;
@@ -237,13 +195,9 @@ void StickyScrollWidget::updateSticky()
     const EditorGeometry editorGeometry(m_editor, lineHeight());
     const int maxLines = maxStickyLines();
     TextDocument *textDocument = m_editor->textDocument();
-    const ScopeFormat format = scopeFormatFor(textDocument->mimeType());
-    const bool symbolsFresh = format == ScopeFormat::Brace && !m_symbols.isEmpty()
-                              && m_symbolsRevision == doc->revision();
-    const PanelState state
-        = symbolsFresh ? computePanelState(doc, editorGeometry, maxLines,
-                                           RefinedBraceScopeModel{m_symbols})
-                       : computePanelStateFor(format, doc, editorGeometry, maxLines);
+    const PanelState state = computePanelState(
+        doc, editorGeometry, maxLines,
+        ScopeContext{textDocument->mimeType(), m_symbols, m_symbolsRevision});
 
     if (state.chain.rows.isEmpty()) {
         m_state = state;
