@@ -1,6 +1,7 @@
 # Qt Creator Sticky Scroll
 
 [![Build plugin](https://github.com/Palm1r/qt-creator-sticky-scroll/actions/workflows/build_cmake.yml/badge.svg)](https://github.com/Palm1r/qt-creator-sticky-scroll/actions/workflows/build_cmake.yml)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/Palm1r/qt-creator-sticky-scroll/total?color=41%2C173%2C71&label=downloads)
 
 Pins the enclosing scope headers to the top of the editor while you scroll, so
 the context of the code on screen — the function, class, block, key, or heading
