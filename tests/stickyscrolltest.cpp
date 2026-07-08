@@ -4,6 +4,7 @@
 #include "stickyscrolltest.hpp"
 
 #include "bracescopemodel.hpp"
+#include "panellayout.hpp"
 #include "panelstateengine.hpp"
 #include "scanutil.hpp"
 #include "scoperesolver.hpp"
@@ -1000,6 +1001,91 @@ void StickyScrollTest::testResolverUnknownMimeUsesBrace()
         &doc, geometry, 5, ScopeContext{"application/octet-stream", empty, doc.revision()});
     const PanelState viaBrace = computePanelState(&doc, geometry, 5);
     QCOMPARE(viaResolver, viaBrace);
+}
+
+static PanelState panelStateWith(const QList<int> &rows, qreal pushOffset = 0)
+{
+    PanelState state;
+    state.chain.rows = rows;
+    state.chain.innermostFoldStart = rows.isEmpty() ? -1 : rows.last();
+    state.chain.innermostRowCount = rows.isEmpty() ? 0 : 1;
+    state.pushOffset = pushOffset;
+    return state;
+}
+
+void StickyScrollTest::testReconcileEmptyChainHides()
+{
+    const PanelLayout layout = reconcilePanel({}, panelStateWith({}),
+                                              QRect(40, 20, 200, 300), 10, 5, 6);
+    QVERIFY(layout.action == PanelAction::Hide);
+    QVERIFY(layout.resetHover);
+}
+
+void StickyScrollTest::testReconcilePanelRectFromViewport()
+{
+    const PanelLayout layout = reconcilePanel({}, panelStateWith({0, 1, 2}),
+                                              QRect(40, 20, 200, 300), 10, 5, 6);
+    // fullHeight = 10*3 + kPanelBorderPx(1) = 31; panel spans gutter(40) + viewport width(200)
+    QCOMPARE(layout.panel, QRect(0, 20, 240, 31));
+    QCOMPARE(layout.shadow, QRect(0, 51, 240, 6));
+}
+
+void StickyScrollTest::testReconcilePushOffsetShrinksPanel()
+{
+    const PanelLayout full = reconcilePanel({}, panelStateWith({0, 1, 2, 3}, 0),
+                                            QRect(0, 0, 100, 300), 10, 5, 6);
+    const PanelLayout pushed = reconcilePanel({}, panelStateWith({0, 1, 2, 3}, 10),
+                                              QRect(0, 0, 100, 300), 10, 5, 6);
+    QCOMPARE(full.panel.height(), 41);   // 10*4 + 1
+    QCOMPARE(pushed.panel.height(), 31); // 41 - 10
+}
+
+void StickyScrollTest::testReconcileUnchangedKeeps()
+{
+    const PanelState state = panelStateWith({0, 1, 2});
+    const QRect viewport(40, 20, 200, 300);
+    const PanelLayout first = reconcilePanel({}, state, viewport, 10, 5, 6);
+    const PaintedSnapshot painted{first.panel, state, 5, true};
+
+    const PanelLayout again = reconcilePanel(painted, state, viewport, 10, 5, 6);
+    QVERIFY(again.action == PanelAction::Keep);
+    QVERIFY(!again.resetHover);
+}
+
+void StickyScrollTest::testReconcileRepaintsWhenRowsChange()
+{
+    const PanelState paintedState = panelStateWith({0, 1, 2});
+    const QRect viewport(40, 20, 200, 300);
+    const QRect panel = reconcilePanel({}, paintedState, viewport, 10, 5, 6).panel;
+    const PaintedSnapshot painted{panel, paintedState, 5, true};
+
+    const PanelLayout layout = reconcilePanel(painted, panelStateWith({0, 1, 2, 4}),
+                                              viewport, 10, 5, 6);
+    QVERIFY(layout.action == PanelAction::Repaint);
+    QVERIFY(layout.resetHover);
+}
+
+void StickyScrollTest::testReconcileRepaintsWhenRevisionChanges()
+{
+    const PanelState state = panelStateWith({0, 1, 2});
+    const QRect viewport(40, 20, 200, 300);
+    const QRect panel = reconcilePanel({}, state, viewport, 10, 5, 6).panel;
+    const PaintedSnapshot painted{panel, state, 5, true};
+
+    const PanelLayout layout = reconcilePanel(painted, state, viewport, 10, 6, 6);
+    QVERIFY(layout.action == PanelAction::Repaint);
+    QVERIFY(!layout.resetHover);
+}
+
+void StickyScrollTest::testReconcileRepaintsWhenHidden()
+{
+    const PanelState state = panelStateWith({0, 1, 2});
+    const QRect viewport(40, 20, 200, 300);
+    const QRect panel = reconcilePanel({}, state, viewport, 10, 5, 6).panel;
+    const PaintedSnapshot painted{panel, state, 5, false}; // matches but not visible
+
+    const PanelLayout layout = reconcilePanel(painted, state, viewport, 10, 5, 6);
+    QVERIFY(layout.action == PanelAction::Repaint);
 }
 
 }

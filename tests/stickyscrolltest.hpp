@@ -57,6 +57,13 @@ private slots:
     void testResolverYamlUsesIndentation();
     void testResolverMarkdownUsesHeadings();
     void testResolverUnknownMimeUsesBrace();
+    void testReconcileEmptyChainHides();
+    void testReconcilePanelRectFromViewport();
+    void testReconcilePushOffsetShrinksPanel();
+    void testReconcileUnchangedKeeps();
+    void testReconcileRepaintsWhenRowsChange();
+    void testReconcileRepaintsWhenRevisionChanges();
+    void testReconcileRepaintsWhenHidden();
 };
 
 }

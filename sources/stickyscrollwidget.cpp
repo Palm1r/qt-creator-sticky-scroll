@@ -3,6 +3,7 @@
 
 #include "stickyscrollwidget.hpp"
 
+#include "panellayout.hpp"
 #include "scanutil.hpp"
 #include "scoperesolver.hpp"
 #include "stickyscrollsettings.hpp"
@@ -200,34 +201,26 @@ void StickyScrollWidget::updateSticky()
         doc, editorGeometry, maxLines,
         ScopeContext{textDocument->mimeType(), m_symbols, m_symbolsRevision});
 
-    if (state.chain.rows.isEmpty()) {
-        m_state = state;
-        m_hoverRow = -1;
-        hidePanel();
-        return;
-    }
-
-    const qreal fullHeight = state.fullHeight(editorGeometry.rowHeight());
-    const QRect viewportRect = m_editor->viewport()->geometry();
-    const int panelHeight = qRound(fullHeight - state.pushOffset);
-    const int panelWidth = viewportRect.x() + viewportRect.width();
-    const QRect panelGeometry(0, viewportRect.y(), panelWidth, panelHeight);
-
     const int revision = doc->revision();
-    const bool unchanged = isVisible() && panelGeometry == geometry()
-                           && state == m_state
-                           && revision == m_paintedRevision;
-    if (state.chain.rows != m_state.chain.rows)
+    const PanelLayout layout = reconcilePanel({geometry(), m_state, m_paintedRevision, isVisible()},
+                                              state, m_editor->viewport()->geometry(),
+                                              editorGeometry.rowHeight(), revision, kShadowHeight);
+    if (layout.resetHover)
         m_hoverRow = -1;
     m_state = state;
     m_paintedRevision = revision;
-    if (unchanged)
+
+    if (layout.action == PanelAction::Hide) {
+        hidePanel();
+        return;
+    }
+    if (layout.action == PanelAction::Keep)
         return;
 
     m_layoutCache.clear();
-    setGeometry(panelGeometry);
+    setGeometry(layout.panel);
     if (m_shadow) {
-        m_shadow->setGeometry(0, viewportRect.y() + panelHeight, panelWidth, kShadowHeight);
+        m_shadow->setGeometry(layout.shadow);
         m_shadow->show();
         m_shadow->raise();
     }
@@ -242,7 +235,7 @@ void StickyScrollWidget::updateSticky()
         << "| rows" << logLines(m_state.chain.rows).join(',')
         << "| innermost start" << m_state.chain.innermostFoldStart + 1
         << "rowCount" << m_state.chain.innermostRowCount
-        << "| fullHeight" << fullHeight << "push" << m_state.pushOffset
+        << "| push" << m_state.pushOffset
         << "-> height" << height();
 }
 

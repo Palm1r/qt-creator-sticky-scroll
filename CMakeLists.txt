@@ -41,6 +41,7 @@ add_qtc_plugin(StickyScroll
     sources/indentationscopemodel.hpp
     sources/markdownscopemodel.cpp
     sources/markdownscopemodel.hpp
+    sources/panellayout.hpp
     sources/panelstateengine.hpp
     sources/scanutil.cpp
     sources/scanutil.hpp
