@@ -38,6 +38,10 @@ Configure the plugin under **Settings → Text Editor → Sticky Scroll**:
 
 ## Installation
 
+Extension repository
+
+From Qt Creator 20 you can find Sticky Scroll plugin in extension list in Qt Creator and install from there
+
 Prebuilt plugins are attached to every
 [release](https://github.com/Palm1r/qt-creator-sticky-scroll/releases).
 
