@@ -19,5 +19,13 @@
         <source>Sticky Scroll</source>
         <translation>Przyklejone przewijanie</translation>
     </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>Przygaszaj przypięte wiersze zakresu</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>Odcień tła panelu:</translation>
+    </message>
 </context>
 </TS>

@@ -19,5 +19,13 @@
         <source>Sticky Scroll</source>
         <translation>Липкая прокрутка</translation>
     </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>Приглушать закреплённые строки области видимости</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>Тонировка фона панели:</translation>
+    </message>
 </context>
 </TS>

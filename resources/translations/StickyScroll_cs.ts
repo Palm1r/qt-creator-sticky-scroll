@@ -19,5 +19,13 @@
         <source>Sticky Scroll</source>
         <translation>Lepivé posouvání</translation>
     </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>Zeslabit připnuté řádky rozsahu</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>Tónování pozadí panelu:</translation>
+    </message>
 </context>
 </TS>

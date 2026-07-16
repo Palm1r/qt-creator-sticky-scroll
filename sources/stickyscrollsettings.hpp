@@ -15,6 +15,9 @@ public:
     Utils::BoolAspect enabled = {this};
     Utils::IntegerAspect maxLines = {this};
     Utils::BoolAspect followHorizontalScroll = {this};
+    Utils::BoolAspect deEmphasizeScopes = {this};
+    Utils::IntegerAspect deEmphasisIntensity = {this};
+    Utils::IntegerAspect panelTint = {this};
 };
 
 StickyScrollSettings &settings();

@@ -37,12 +37,30 @@ StickyScrollSettings::StickyScrollSettings()
     followHorizontalScroll.setLabelText(
         Tr::tr("Scroll pinned lines horizontally with the editor"));
 
+    deEmphasizeScopes.setSettingsKey("DeEmphasizeScopes");
+    deEmphasizeScopes.setDefaultValue(true);
+    deEmphasizeScopes.setLabelText(Tr::tr("De-emphasize pinned scope lines"));
+
+    deEmphasisIntensity.setSettingsKey("DeEmphasisIntensity");
+    deEmphasisIntensity.setDefaultValue(100);
+    deEmphasisIntensity.setRange(0, 100);
+    deEmphasisIntensity.setSuffix("%");
+    deEmphasisIntensity.setEnabler(&deEmphasizeScopes);
+
+    panelTint.setSettingsKey("PanelTint");
+    panelTint.setDefaultValue(6);
+    panelTint.setRange(0, 25);
+    panelTint.setSuffix("%");
+    panelTint.setLabelText(Tr::tr("Panel background tint:"));
+
     setLayouter([this] {
         using namespace Layouting;
         return Column {
             enabled,
             Row { maxLines, st },
             followHorizontalScroll,
+            Row { deEmphasizeScopes, deEmphasisIntensity, st },
+            Row { panelTint, st },
             st,
         };
     });

@@ -13,11 +13,19 @@
     </message>
     <message>
         <source>Scroll pinned lines horizontally with the editor</source>
-        <translation>Faire défiler les lignes épinglées horizontalement avec l'éditeur</translation>
+        <translation>Faire défiler les lignes épinglées horizontalement avec l&apos;éditeur</translation>
     </message>
     <message>
         <source>Sticky Scroll</source>
         <translation>Défilement épinglé</translation>
+    </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>Atténuer les lignes de portée épinglées</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>Teinte de fond du panneau :</translation>
     </message>
 </context>
 </TS>

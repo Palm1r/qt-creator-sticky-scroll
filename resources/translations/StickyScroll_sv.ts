@@ -19,5 +19,13 @@
         <source>Sticky Scroll</source>
         <translation>Klistrig rullning</translation>
     </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>Tona ned fästa scope-rader</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>Ton på panelens bakgrund:</translation>
+    </message>
 </context>
 </TS>
