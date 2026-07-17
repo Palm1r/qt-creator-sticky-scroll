@@ -9,6 +9,12 @@ you are inside — always stays visible. Click a pinned line to jump to it. Togg
 the feature and set the maximum number of pinned lines on the **Sticky Scroll**
 page in the text editor settings.
 
+The panel is visually separated from the code: it gets a subtle background tint
+and a separation line, and the pinned lines themselves are dimmed on two levels
+— the innermost scope slightly, the outer scopes more — so they read as context
+rather than code. Hovering a pinned line restores its full contrast. Both the
+tint and the dimming are configurable (see [Settings](#settings)).
+
 <img width="600" height="305" alt="sticky-scroll-demo-600" src="https://github.com/user-attachments/assets/c7d105aa-b75f-493d-8bd7-10f8480c5b29" />
 
 ## Supported formats
@@ -36,6 +42,13 @@ Configure the plugin under **Settings → Text Editor → Sticky Scroll**:
 - **Maximum number of pinned lines** — how many scope headers may stay pinned at
   once (1–10, default 5).
 - **Horizontal pinning** — should pinned follow to horizontal scroll
+- **De-emphasize pinned scope lines** — dim the pinned lines so they read as
+  context, not code: the innermost scope lightly, all outer scopes more
+  (enabled by default). The percentage field scales the dimming strength
+  (0–100%, default 100%); hovering a line always shows it at full contrast.
+- **Panel background tint** — how strongly the panel background is tinted
+  relative to the editor background (0–25%, default 6%; 0 disables the tint).
+  The separation line and shadow are always drawn.
 
 ## Installation
 
