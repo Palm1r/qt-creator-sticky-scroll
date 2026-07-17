@@ -32,9 +32,17 @@ namespace StickyScroll {
 
 const int kShadowHeight = 6;
 const int kShadowAlpha = 70;
-const int kBorderAlpha = 60;
+const int kBorderAlpha = 120;
+const int kBorderHeight = 2;
 const int kLineNumberPadding = 4;
 const int kContentsChangedDebounceMs = 150;
+const qreal kDimInnermost = 0.15;
+const qreal kDimOuter = 0.45;
+
+static qreal rowDimFactor(int row, int firstInnermostRow)
+{
+    return row < firstInnermostRow ? kDimOuter : kDimInnermost;
+}
 
 static int maxStickyLines()
 {
@@ -285,6 +293,9 @@ void StickyScrollWidget::paintEvent(QPaintEvent *)
             gutterBrush = baseFormat.background();
         painter.fillRect(QRect(0, 0, gutterWidth, height()), gutterBrush);
     }
+    QColor panelTint = baseFormat.foreground().color();
+    panelTint.setAlphaF(settings().panelTint() / 100.0);
+    painter.fillRect(rect(), panelTint);
     const QFont extraAreaFont = m_editor->extraArea()->font();
     int foldBoxSpacing = QFontMetrics(extraAreaFont).lineSpacing();
     if (Utils::TextEditorLayout *editorLayout = m_editor->editorLayout()) {
@@ -304,6 +315,9 @@ void StickyScrollWidget::paintEvent(QPaintEvent *)
                                      : 0;
     const qreal xOffset = gutterWidth + doc->documentMargin() - horizontalScroll;
     const int firstInnermostRow = m_state.chain.firstInnermostRow();
+    const qreal deEmphasisIntensity = settings().deEmphasizeScopes()
+                                          ? settings().deEmphasisIntensity() / 100.0
+                                          : 0.0;
 
     for (int i = 0; i < m_state.chain.rows.size(); ++i) {
         const int blockNumber = m_state.chain.rows.at(i);
@@ -325,6 +339,11 @@ void StickyScrollWidget::paintEvent(QPaintEvent *)
                 painter.fillRect(QRectF(gutterWidth, y, width() - gutterWidth, rowHeight),
                                  hoverFormat.background());
         }
+
+        const qreal dim = i == m_hoverRow
+                              ? 0.0
+                              : deEmphasisIntensity * rowDimFactor(i, firstInnermostRow);
+        painter.setOpacity(1.0 - dim);
 
         if (m_editor->lineNumbersVisible() && gutterWidth > 0) {
             painter.setFont(extraAreaFont);
@@ -352,6 +371,7 @@ void StickyScrollWidget::paintEvent(QPaintEvent *)
                             Qt::IntersectClip);
         layout->draw(&painter, QPointF(xOffset, y));
         painter.restore();
+        painter.setOpacity(1.0);
 
         if (sliding)
             painter.restore();
@@ -359,7 +379,7 @@ void StickyScrollWidget::paintEvent(QPaintEvent *)
 
     QColor border = baseFormat.foreground().color();
     border.setAlpha(kBorderAlpha);
-    painter.fillRect(QRect(0, height() - 1, width(), 1), border);
+    painter.fillRect(QRect(0, height() - kBorderHeight, width(), kBorderHeight), border);
 }
 
 int StickyScrollWidget::rowAt(qreal y) const

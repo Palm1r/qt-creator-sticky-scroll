@@ -19,5 +19,13 @@
         <source>Sticky Scroll</source>
         <translation>Lepljivo drsenje</translation>
     </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>Priduši pripete vrstice obsega</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>Odtenek ozadja plošče:</translation>
+    </message>
 </context>
 </TS>

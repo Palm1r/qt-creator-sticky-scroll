@@ -39,6 +39,12 @@ public:
                 this, &StickyScrollPlugin::applySettings);
         connect(&settings().followHorizontalScroll, &Utils::BaseAspect::changed,
                 this, &StickyScrollPlugin::applySettings);
+        connect(&settings().deEmphasizeScopes, &Utils::BaseAspect::changed,
+                this, &StickyScrollPlugin::applySettings);
+        connect(&settings().deEmphasisIntensity, &Utils::BaseAspect::changed,
+                this, &StickyScrollPlugin::applySettings);
+        connect(&settings().panelTint, &Utils::BaseAspect::changed,
+                this, &StickyScrollPlugin::applySettings);
 
         connect(EditorManager::instance(), &EditorManager::editorOpened,
                 this, &StickyScrollPlugin::attachToEditor);

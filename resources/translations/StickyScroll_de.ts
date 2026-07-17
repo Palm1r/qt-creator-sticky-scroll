@@ -19,5 +19,13 @@
         <source>Sticky Scroll</source>
         <translation>Sticky Scroll</translation>
     </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>Angeheftete Bereichszeilen abschwächen</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>Hintergrundtönung des Panels:</translation>
+    </message>
 </context>
 </TS>

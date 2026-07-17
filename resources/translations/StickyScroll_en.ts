@@ -19,5 +19,13 @@
         <source>Sticky Scroll</source>
         <translation>Sticky Scroll</translation>
     </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>De-emphasize pinned scope lines</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>Panel background tint:</translation>
+    </message>
 </context>
 </TS>

@@ -19,5 +19,13 @@
         <source>Sticky Scroll</source>
         <translation>粘性滚动</translation>
     </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>淡化固定的作用域行</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>面板背景色调:</translation>
+    </message>
 </context>
 </TS>

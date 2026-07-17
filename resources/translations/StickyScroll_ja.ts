@@ -19,5 +19,13 @@
         <source>Sticky Scroll</source>
         <translation>スティッキースクロール</translation>
     </message>
+    <message>
+        <source>De-emphasize pinned scope lines</source>
+        <translation>固定されたスコープ行を淡色表示する</translation>
+    </message>
+    <message>
+        <source>Panel background tint:</source>
+        <translation>パネル背景の色合い:</translation>
+    </message>
 </context>
 </TS>
